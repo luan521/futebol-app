@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.utils.delta_ &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.utils.delta_</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.utils.delta_</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">modulos.read_metadata</span> <span class="kn">import</span> <span class="n">read_metadata</span>
+<span class="n">meta_data</span> <span class="o">=</span> <span class="n">read_metadata</span><span class="p">()</span>
+
+<div class="viewcode-block" id="read_delta"><a class="viewcode-back" href="../../../module/modulos.utils.html#modulos.utils.delta_.read_delta">[docs]</a><span class="k">def</span> <span class="nf">read_delta</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">metadata_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datapath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ler dados em formato delta</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        spark: (spark session) spark session</span>
+<span class="sd">        metadata_key: (str) chave do dicionário meta_data[&quot;GoogleStorage&quot;][&quot;tabelas_historicas&quot;]</span>
+<span class="sd">        datapath: (str) caminho dos arquivos a serem lidos</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        (spark dataframe)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">metadata_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">datapath</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;tabelas_historicas&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;tabelas_historicas&quot;</span><span class="p">][</span><span class="n">metadata_key</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;versionAsOf&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;timestampAsOf&quot;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">filter_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="save_delta"><a class="viewcode-back" href="../../../module/modulos.utils.html#modulos.utils.delta_.save_delta">[docs]</a><span class="k">def</span> <span class="nf">save_delta</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">datapath</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Salva o data frame em formato delta</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: (spark dataframe) dataframe a ser salvo</span>
+<span class="sd">        datapath: (str) caminho onde o dataframe será salvo</span>
+<span class="sd">        mode: (str) modo de escrita [overwrite, append]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="restore_delta_to_version"><a class="viewcode-back" href="../../../module/modulos.utils.html#modulos.utils.delta_.restore_delta_to_version">[docs]</a><span class="k">def</span> <span class="nf">restore_delta_to_version</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">spark</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timestamp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Restaura a versão do delta, ou para a version=&lt;version&gt; ou para timestamp=&lt;timestamp&gt;</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        datapath: (str) caminho do dataframe em formato delta, que será atualizado</span>
+<span class="sd">        spark: (spark session) spark session</span>
+<span class="sd">        version: (int) versão do delta que será restaurada</span>
+<span class="sd">        timestamp: (timestamp) timestamp do delta que será restaurada</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df_restore</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;versionAsOf&quot;</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">df_restore</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;timestampAsOf&quot;</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    <span class="n">save_delta</span><span class="p">(</span><span class="n">df_restore</span><span class="p">,</span> <span class="n">datapath</span><span class="p">,</span> <span class="s1">&#39;overwrite&#39;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="update_historical_delta"><a class="viewcode-back" href="../../../module/modulos.utils.html#modulos.utils.delta_.update_historical_delta">[docs]</a><span class="k">def</span> <span class="nf">update_historical_delta</span><span class="p">(</span><span class="n">path_historical_data</span><span class="p">,</span> <span class="n">df_new</span><span class="p">,</span> <span class="n">columns_unique_update_historical_delta</span><span class="p">,</span> <span class="n">spark</span><span class="p">,</span> <span class="n">DeltaTable</span><span class="p">,</span> <span class="n">filter_update</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">columns_update</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Atualiza os dados históricos, em formato delta</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        path_historical_data: (str) caminho do dataframe em formato delta, que será atualizado</span>
+<span class="sd">        df_new: (spark dataframe) dataframe novo, contendo os novos dados, em relação aos dados históricos</span>
+<span class="sd">        columns_unique_update_historical_delta: (list) colunas chaves, cujos valores não se duplicam na tabela</span>
+<span class="sd">        spark: (spark session) spark session</span>
+<span class="sd">        DeltaTable: (DeltaTable) DeltaTable session</span>
+<span class="sd">        filter_update: (str) Filtro na linguagem SQL. Insere uma condição a mais para atualizar os dados, </span>
+<span class="sd">                       quando as colunas &lt;columns_unique&gt; do dataframe histórico, possuem os mesmos valores em &lt;df_new&gt;</span>
+<span class="sd">        columns_update: (list) colunas que serão atualizadas quando as condições forem satisfeitas. </span>
+<span class="sd">                        &lt;columns_update&gt; = &#39;all&#39;: Todas as colunas serão atualizadas</span>
+<span class="sd">        vacum_delta_table: (int) Número de dias para deletar o histórico do delta</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">df_table</span> <span class="o">=</span> <span class="n">DeltaTable</span><span class="o">.</span><span class="n">forPath</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">path_historical_data</span><span class="p">)</span>
+    
+    <span class="n">query_columns_unique</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns_unique_update_historical_delta</span><span class="p">:</span>
+        <span class="n">query_columns_unique</span> <span class="o">=</span> <span class="n">query_columns_unique</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;oldData.</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> = newData.</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2"> and &quot;</span>
+    <span class="n">query_columns_unique</span><span class="o">=</span><span class="n">query_columns_unique</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+    
+    <span class="k">if</span> <span class="n">columns_update</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+        <span class="p">(</span>
+            <span class="n">df_table</span>
+            <span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;oldData&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_new</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;newData&quot;</span><span class="p">),</span>
+                   <span class="n">query_columns_unique</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">whenMatchedUpdateAll</span><span class="p">(</span><span class="n">filter_update</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">whenNotMatchedInsertAll</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">map_columns_update</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;newData.</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_update</span><span class="p">}</span>
+        <span class="p">(</span>
+            <span class="n">df_table</span>
+            <span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;oldData&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df_new</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">&quot;newData&quot;</span><span class="p">),</span>
+                   <span class="n">query_columns_unique</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">whenMatchedUpdate</span><span class="p">(</span><span class="n">filter_update</span><span class="p">,</span> <span class="n">map_columns_update</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">whenNotMatchedInsertAll</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="n">df_table</span><span class="o">.</span><span class="n">vacuum</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

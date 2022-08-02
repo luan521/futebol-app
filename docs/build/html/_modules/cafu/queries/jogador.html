@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.queries.jogador &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.queries.jogador</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.queries.jogador</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.string</span> <span class="kn">import</span> <span class="n">convert_str_var_time</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.queries.webdriver_chrome</span> <span class="kn">import</span> <span class="n">WebdriverChrome</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.paths</span> <span class="kn">import</span> <span class="n">path</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/logs.txt&#39;</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
+                    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> 
+                    <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y %I:%M:%S %p&#39;</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AtuacoesJogador"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador">[docs]</a><span class="k">class</span> <span class="nc">AtuacoesJogador</span><span class="p">(</span><span class="n">WebdriverChrome</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extrai informações do desempenho do jogador no atual campeonato disputado</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        id_jogador: (str) completa o link https://www.espn.com.br/futebol/jogador/_/id/&lt;id_jogador&gt;. </span>
+<span class="sd">                          Ex &lt;id_jogador&gt;=&#39;199017/everton-ribeiro&#39;</span>
+<span class="sd">        headless: (bool) se o navegador será mostrado ou não</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_jogador</span><span class="p">,</span> <span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="n">headless</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_atuacoes_jogador</span><span class="p">(</span><span class="n">id_jogador</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span> <span class="o">=</span> <span class="n">id_jogador</span>
+
+<div class="viewcode-block" id="AtuacoesJogador._x_path"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador._x_path">[docs]</a>    <span class="k">def</span> <span class="nf">_x_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_v</span><span class="p">,</span> <span class="n">pos_h</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Define o xpath do método find_element_by_xpath da biblioteca selenium, para a busca de uma informação em um jogo</span>
+<span class="sd">        </span>
+<span class="sd">        .. figure:: ../../../imagens_doc/atuacoes_jogador.png</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            pos_v: (int) posição horizontal da informação na tabela, referente a coluna </span>
+<span class="sd">            pos_h: (int) posição vertical da informação na tabela, referente ao jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: xpath </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">response</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;//*[@id=&quot;fittPageContainer&quot;]/div[2]/div[5]/div/div/div[1]/div/div[2]/&#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;div[2]/div/div/div/div/div[2]/table/tbody/tr[</span><span class="si">{</span><span class="n">pos_h</span><span class="si">}</span><span class="s1">]/td[</span><span class="si">{</span><span class="n">pos_v</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response</span> </div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.campeonato"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.campeonato">[docs]</a>    <span class="k">def</span> <span class="nf">campeonato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: campeonato em que o jogador atua</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="n">xpath</span> <span class="o">=</span> <span class="s1">&#39;//*[@id=&quot;fittPageContainer&quot;]/div[2]/div[5]/div/div/div[1]/div/div[2]/div[1]&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">xpath</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.campeonato: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.campeonato: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.date"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.date">[docs]</a>    <span class="k">def</span> <span class="nf">date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: data da partida </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.date: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.date: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.casa_fora"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.casa_fora">[docs]</a>    <span class="k">def</span> <span class="nf">casa_fora</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: se o jogo foi em casa ou fora</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">identificador</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.casa_fora: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>    
+            <span class="k">return</span>
+        
+        <span class="k">if</span> <span class="n">identificador</span> <span class="o">==</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;casa&#39;</span>
+        <span class="k">elif</span> <span class="n">identificador</span> <span class="o">==</span> <span class="s1">&#39;em&#39;</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="s1">&#39;fora&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.casa_fora: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;identificador not in (x, em). &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.casa_fora: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.adversario"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.adversario">[docs]</a>    <span class="k">def</span> <span class="nf">adversario</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: time adversário</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.adversario: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.adversario: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.resultado"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.resultado">[docs]</a>    <span class="k">def</span> <span class="nf">resultado</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: resultado (V, E, D), placar</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.resultado: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;resultado&#39;</span><span class="p">:</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;placar&#39;</span><span class="p">:</span><span class="n">info</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.resultado: Function executed successfully. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.resultado: Unexpected error: split method. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.gols"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.gols">[docs]</a>    <span class="k">def</span> <span class="nf">gols</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de gols marcados pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.gols: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.gols: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.assistencias"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.assistencias">[docs]</a>    <span class="k">def</span> <span class="nf">assistencias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de assistências feitas pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.assistencias: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.assistencias: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.finalizacoes"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.finalizacoes">[docs]</a>    <span class="k">def</span> <span class="nf">finalizacoes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de finalizações feitas pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.finalizacoes: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.finalizacoes: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+        
+<div class="viewcode-block" id="AtuacoesJogador.finalizacoes_no_gol"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.finalizacoes_no_gol">[docs]</a>    <span class="k">def</span> <span class="nf">finalizacoes_no_gol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de finalizações no gol, feitas pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.finalizacoes_no_gol: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+        
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.finalizacoes_no_gol: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.faltas_cometidas"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.faltas_cometidas">[docs]</a>    <span class="k">def</span> <span class="nf">faltas_cometidas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de faltas cometidas pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.faltas_cometidas: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.faltas_cometidas: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.faltas_sofridas"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.faltas_sofridas">[docs]</a>    <span class="k">def</span> <span class="nf">faltas_sofridas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de faltas sofridas pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.faltas_sofridas: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.faltas_sofridas: Function executed successfully. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.impedimentos"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.impedimentos">[docs]</a>    <span class="k">def</span> <span class="nf">impedimentos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de impedimentos do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.impedimentos: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.impedimentos: &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.cartoes_amarelos"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.cartoes_amarelos">[docs]</a>    <span class="k">def</span> <span class="nf">cartoes_amarelos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de cartões amarelos levados pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.cartoes_amarelos: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.cartoes_amarelos: &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div>
+    
+<div class="viewcode-block" id="AtuacoesJogador.cartoes_vermelhos"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.AtuacoesJogador.cartoes_vermelhos">[docs]</a>    <span class="k">def</span> <span class="nf">cartoes_vermelhos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            jogo: (int) jogo (1-último, 2-penultimo, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: quantidade de cartões vermelhos levados pelo jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="n">jogo</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.AtuacoesJogador.cartoes_vermelhos: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+
+            <span class="k">return</span>
+            
+        <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.AtuacoesJogador.cartoes_vermelhos: &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;jogo&gt;=</span><span class="si">{</span><span class="n">jogo</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">response</span></div></div>
+    
+<div class="viewcode-block" id="Bio"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio">[docs]</a><span class="k">class</span> <span class="nc">Bio</span><span class="p">(</span><span class="n">WebdriverChrome</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extrai informações da biografia do jogador</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        id_jogador: (str) completa o link https://www.espn.com.br/futebol/jogador/bio/_/id/&lt;id_jogador&gt;.</span>
+<span class="sd">                          Ex &lt;id_jogador&gt;=&#39;199017/everton-ribeiro&#39;</span>
+<span class="sd">        headless: (bool) se o navegador será mostrado ou não</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_jogador</span><span class="p">,</span> <span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="n">headless</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_bio_jogador</span><span class="p">(</span><span class="n">id_jogador</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span> <span class="o">=</span> <span class="n">id_jogador</span>
+
+<div class="viewcode-block" id="Bio._x_path"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio._x_path">[docs]</a>    <span class="k">def</span> <span class="nf">_x_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Define o xpath do método find_element_by_xpath da biblioteca selenium, para a busca de uma informação de biografia</span>
+<span class="sd">        </span>
+<span class="sd">        .. figure:: ../../../imagens_doc/biografia.png</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            pos: (int) posição na tabela biografia (2-posicao, 3-altura;massa, ...)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: xpath </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;//*[@id=&quot;fittPageContainer&quot;]/div[2]/div[5]/div/div/section[1]/div/div[</span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s1">]/div/span[2]&#39;</span></div>
+    
+<div class="viewcode-block" id="Bio.time"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.time">[docs]</a>    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Todos os times do histórico de carreira do jogador</span>
+<span class="sd">        Args:</span>
+<span class="sd">            pos: (int) posição na tabela &quot;Histórico da Carreira&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: time do jogador, quantidade de temporadas</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="n">x_path_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;//*[@id=&quot;fittPageContainer&quot;]/div[2]/div[5]/div/div/section[2]/div/a[</span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s1">]/div/span[1]&#39;</span>
+        <span class="n">x_path_temps</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;//*[@id=&quot;fittPageContainer&quot;]/div[2]/div[5]/div/div/section[2]/div/a[</span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s1">]/div/span[2]&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">x_path_time</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="n">x_path_temps</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.time: Function executed successfully. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;pos&gt;=</span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.time: Unexpected error: Could not execute function. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">, &lt;pos&gt;=</span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span> </div>
+    
+<div class="viewcode-block" id="Bio.posicao"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.posicao">[docs]</a>    <span class="k">def</span> <span class="nf">posicao</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: posição do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.posicao: Function executed successfully. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.posicao: Unexpected error: Could not execute function. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span> </div>
+    
+<div class="viewcode-block" id="Bio.altura"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.altura">[docs]</a>    <span class="k">def</span> <span class="nf">altura</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: altura do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.altura: Function executed successfully. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.altura: Unexpected error: Could not execute function. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span> </div>
+    
+<div class="viewcode-block" id="Bio.massa"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.massa">[docs]</a>    <span class="k">def</span> <span class="nf">massa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: massa do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.massa: Function executed successfully. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.massa: Unexpected error: Could not execute function &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span> </div>
+    
+<div class="viewcode-block" id="Bio.data_nascimento"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.data_nascimento">[docs]</a>    <span class="k">def</span> <span class="nf">data_nascimento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: data de nascimento do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; (&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.data_nascimento: Function executed successfully &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.data_nascimento: Unexpected error: Could not execute function &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span></div>
+    
+<div class="viewcode-block" id="Bio.nacionalidade"><a class="viewcode-back" href="../../../module/cafu.queries.html#cafu.queries.jogador.Bio.nacionalidade">[docs]</a>    <span class="k">def</span> <span class="nf">nacionalidade</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: nacionalidade do jogador</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_xpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_path</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; (&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS queries.jogador.Bio.nacionalidade: Function executed successfully &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR queries.jogador.Bio.nacionalidade: Unexpected error: Could not execute function &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;id_jogador&gt;=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

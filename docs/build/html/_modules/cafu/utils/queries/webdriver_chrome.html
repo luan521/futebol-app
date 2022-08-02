@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.utils.queries.webdriver_chrome &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.utils.queries.webdriver_chrome</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.utils.queries.webdriver_chrome</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">selenium</span> <span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">selenium.webdriver.chrome.options</span> <span class="kn">import</span> <span class="n">Options</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.string</span> <span class="kn">import</span> <span class="n">convert_str_var_time</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.campeonatos_dafabet</span> <span class="kn">import</span> <span class="n">campeonato_dafabet</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.paths</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="n">path_driver</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;initial_path&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/chromedriver&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/logs.txt&#39;</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
+                    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> 
+                    <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y %I:%M:%S %p&#39;</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WebdriverChrome"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.webdriver_chrome.WebdriverChrome">[docs]</a><span class="k">class</span> <span class="nc">WebdriverChrome</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inicializa a sessão do chromedriver e entra em alguns links úteis. </span>
+<span class="sd">    Método self.web.close() fecha a sessão do Chrome driver</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        start_webdriver: (bool) se o Chrome driver deve ser iniciado</span>
+<span class="sd">        headless: (bool) se o navegador será mostrado ou não</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_webdriver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">chrome_options</span> <span class="o">=</span> <span class="n">Options</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">headless</span><span class="p">:</span>
+                <span class="n">chrome_options</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--headless&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">start_webdriver</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">web</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">Chrome</span><span class="p">(</span><span class="n">path_driver</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">chrome_options</span><span class="p">)</span>
+                
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.webdriver_chrome.WebdriverChrome: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Chromedriver started successfully. &lt;start_webdriver&gt;=</span><span class="si">{</span><span class="n">start_webdriver</span><span class="si">}</span><span class="s2">, &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;&lt;headless&gt;=</span><span class="si">{</span><span class="n">headless</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR utils.queries.webdriver_chrome.WebdriverChrome: Unexpected error: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Could started Chromedriver. &lt;start_webdriver&gt;=</span><span class="si">{</span><span class="n">start_webdriver</span><span class="si">}</span><span class="s2">, &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;headless&gt;=</span><span class="si">{</span><span class="n">headless</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="WebdriverChrome.get_atuacoes_jogador"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.webdriver_chrome.WebdriverChrome.get_atuacoes_jogador">[docs]</a>    <span class="k">def</span> <span class="nf">get_atuacoes_jogador</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_jogador</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Entra no link para a busca das informações das atuações do jogador, buscando todo o histórico</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id_jogador: (str) completa o link https://www.espn.com.br/futebol/jogador/jogos/_/id/&lt;id_jogador&gt;. </span>
+<span class="sd">                              Ex &lt;id_jogador&gt;=&#39;199017/everton-ribeiro&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://www.espn.com.br/futebol/jogador/jogos/_/id/</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.webdriver_chrome.WebdriverChrome.get_atuacoes_jogador: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.queries.webdriver_chrome.WebdriverChrome.get_atuacoes_jogador: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="WebdriverChrome.get_bio_jogador"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.webdriver_chrome.WebdriverChrome.get_bio_jogador">[docs]</a>    <span class="k">def</span> <span class="nf">get_bio_jogador</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_jogador</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Entra no link para a busca da biografia do jogador</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id_jogador: (str) completa o link https://www.espn.com.br/futebol/jogador/bio/_/id/&lt;id_jogador&gt;. </span>
+<span class="sd">                              Ex &lt;id_jogador&gt;=&#39;199017/everton-ribeiro&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://www.espn.com.br/futebol/jogador/bio/_/id/</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.webdriver_chrome.WebdriverChrome.get_bio_jogador: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.queries.webdriver_chrome.WebdriverChrome.get_bio_jogador: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;id_jogador&gt;=</span><span class="si">{</span><span class="n">id_jogador</span><span class="si">}</span><span class="s2">. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="WebdriverChrome.get_campeonato_dafabet"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.webdriver_chrome.WebdriverChrome.get_campeonato_dafabet">[docs]</a>    <span class="k">def</span> <span class="nf">get_campeonato_dafabet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chave_campeonato</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Entra no link para a busca das odds no site Dafabet</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chave_campeonato: (str) chave do dicionário dict_id_campeonato, caminho metadata/campeonatos_dafabet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">id_campeonato</span> <span class="o">=</span> <span class="n">campeonato_dafabet</span><span class="p">(</span><span class="n">chave_campeonato</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://www.dafabet.com/pt/dfgoal/sports/240-football/</span><span class="si">{</span><span class="n">id_campeonato</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.webdriver_chrome.WebdriverChrome.get_campeonato_dafabet: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;chave_campeonato&gt;=</span><span class="si">{</span><span class="n">chave_campeonato</span><span class="si">}</span><span class="s2">. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.queries.webdriver_chrome.WebdriverChrome.get_campeonato_dafabet: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;chave_campeonato&gt;=</span><span class="si">{</span><span class="n">chave_campeonato</span><span class="si">}</span><span class="s2">. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="WebdriverChrome.get_partida_espn"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.webdriver_chrome.WebdriverChrome.get_partida_espn">[docs]</a>    <span class="k">def</span> <span class="nf">get_partida_espn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jogo_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Entra no link para o resumo da partida no site ESPN</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            jogo_id: (int or str) completa o link https://www.espn.com.br/futebol/escalacoes?jogoId=&lt;jogo_id&gt;. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">init</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://www.espn.com.br/futebol/partida/_/jogoId/</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">jogo_id</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.webdriver_chrome.WebdriverChrome.get_partida_espn: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;jogo_id&gt;=</span><span class="si">{</span><span class="n">jogo_id</span><span class="si">}</span><span class="s2">. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">runtime_str</span> <span class="o">=</span> <span class="n">convert_str_var_time</span><span class="p">(</span><span class="n">init</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.queries.webdriver_chrome.WebdriverChrome.get_partida_espn: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function. &lt;jogo_id&gt;=</span><span class="si">{</span><span class="n">jogo_id</span><span class="si">}</span><span class="s2">. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;runtime = </span><span class="si">{</span><span class="n">runtime_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+modulos.fluxos package
+======================
+
+.. automodule:: modulos.fluxos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+Submodules
+----------
+
+modulos.fluxos.contratos module
+-------------------------------
+
+.. automodule:: modulos.fluxos.contratos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.fluxos.crm module
+-------------------------
+
+.. automodule:: modulos.fluxos.crm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.fluxos.integracao\_inv module
+-------------------------------------
+
+.. automodule:: modulos.fluxos.integracao_inv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.fluxos.integracao\_res\_cont module
+-------------------------------------------
+
+.. automodule:: modulos.fluxos.integracao_res_cont
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.fluxos.investimento module
+----------------------------------
+
+.. automodule:: modulos.fluxos.investimento
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.fluxos.reservas module
+------------------------------
+
+.. automodule:: modulos.fluxos.reservas
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:

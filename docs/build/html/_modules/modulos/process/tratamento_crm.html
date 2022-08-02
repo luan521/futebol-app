@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.process.tratamento_crm &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.process.tratamento_crm</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.process.tratamento_crm</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+<span class="kn">import</span> <span class="nn">pyspark.sql.types</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.window</span> <span class="kn">import</span> <span class="n">Window</span>
+<span class="kn">from</span> <span class="nn">modulos.process.renamer_columns</span> <span class="kn">import</span> <span class="n">renamer_columns</span>
+<span class="kn">from</span> <span class="nn">modulos.process.date</span> <span class="kn">import</span> <span class="n">get_week_init_end_years</span><span class="p">,</span> <span class="n">info_date</span><span class="p">,</span> <span class="n">dates_between</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.delta_</span> <span class="kn">import</span> <span class="n">read_delta</span>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento">[docs]</a><span class="k">class</span> <span class="nc">DeepDiveCRM_Tratamento</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Classe para montar as bases de Contratos, Contratos a nível de diárias e Clientes, que serão usadas tanto para construir a janela rolante dos últimos 12 meses quanto na análise Deep Dive CRM</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spark</span><span class="p">,</span> <span class="n">path_contratos</span><span class="p">):</span>
+        
+        <span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="sd">        Inicializa a classe</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            spark: (spark) spark session</span>
+<span class="sd">            path_contratos: (str) caminho para a base histórica de contratos</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">spark</span> <span class="o">=</span> <span class="n">spark</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="p">(</span>
+                             <span class="n">read_delta</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">datapath</span><span class="o">=</span><span class="n">path_contratos</span><span class="p">)</span> 
+                                 <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;segmento=&quot;Pessoa Física&quot;&#39;</span><span class="p">)</span> 
+                                 <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> 
+                                 <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;dt_fechamento_contrato_efetiva&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_fechamento_contrato_efetiva&#39;</span><span class="p">),</span>
+                                                                                          <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_retorno&#39;</span><span class="p">))</span>
+                                            <span class="p">)</span>
+                                 <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;cd_status_contrato &lt;&gt; 5&#39;</span><span class="p">)</span>
+                                 <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;dt_fechamento_contrato_efetiva&#39;</span><span class="p">,</span> <span class="s1">&#39;qtd_diaria&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">,</span>
+                                         <span class="s1">&#39;tipo_contrato&#39;</span>
+                                        <span class="p">)</span>
+                                 <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_abertura&#39;</span><span class="p">)</span> 
+                                 <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_fechamento_contrato_efetiva&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_fechamento&#39;</span><span class="p">)</span>
+                            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols_drop_tmp</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_data_abertura</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_clientes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ---------------------- Prepare (select + rename cols) -----------------------------</span>
+        
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._rename_cols_df_contratos"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._rename_cols_df_contratos">[docs]</a>    <span class="k">def</span> <span class="nf">_rename_cols_df_contratos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Renomeia colunas da base Contratos, pra rodar as funções sem ter que mudar nomes internamente</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">rename_cols_contratos</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;dt_abertura&#39;</span><span class="p">:</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">:</span> <span class="s1">&#39;cliente&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">rename_cols_contratos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">columns</span><span class="p">])</span></div>
+
+    <span class="c1"># ------------------- Tratamentos ----------------------------</span>
+    
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_col_abertura"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_col_abertura">[docs]</a>    <span class="k">def</span> <span class="nf">_add_col_abertura</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Adiciona coluna com flag para indicar o contrato inicial que foi aberto para um mesmo contrato-mãe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span>
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;abertura&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span> 
+                                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_col_diarias"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_col_diarias">[docs]</a>    <span class="k">def</span> <span class="nf">_add_col_diarias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Adiciona coluna com a contagem final de diárias do contrato, baseado no intervalo de dias e horas entre as datas de abertura e fechamento</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span>
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;delta&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_fechamento&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">LongType</span><span class="p">())</span> <span class="o">-</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">LongType</span><span class="p">()))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;dias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">datediff</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_fechamento&#39;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">,</span>  <span class="n">f</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;delta&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dias&#39;</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">3600</span><span class="o">*</span><span class="mi">24</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3600</span><span class="p">)</span> <span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">,</span>  <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">24</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">)))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dias&#39;</span><span class="p">))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;horas&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>  <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                                                        <span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;dt_fechamento&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span> <span class="o">&amp;</span> 
+                                                              <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dias&#39;</span><span class="p">)),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                                                        <span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                                                        <span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)))</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">))</span> 
+                                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;delta&#39;</span><span class="p">,</span><span class="s1">&#39;dias&#39;</span><span class="p">,</span><span class="s1">&#39;horas&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+    <span class="c1"># ------------------- Transforma contratos para visão de carros na rua ----------------------------</span>
+    
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._create_df"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._create_df">[docs]</a>    <span class="k">def</span> <span class="nf">_create_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Cria a base Contrato Diárias, que representa a visão de carros na rua, considerando as informações da abertura do contrato e a quantidade total de diárias</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols_drop_tmp</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;abertura&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_fechamento&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;tipo_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;qtd_diaria&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cols_drop_tmp</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._explode_diarias"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._explode_diarias">[docs]</a>    <span class="k">def</span> <span class="nf">_explode_diarias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Explode a base Contrato Diárias, para obter uma diária por linha, baseado no intervalo entre a data de abertura e todas as datas em que o contrato esteve ativo</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="s2">&quot;date_add(to_date(data), diarias-1)&quot;</span><span class="p">))</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="s1">&#39;sequence(to_date(data), to_date(final), interval 1 day)&#39;</span><span class="p">)))</span> 
+                      <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;diarias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                  <span class="p">)</span> </div>
+                
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._treat_duplicatas"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._treat_duplicatas">[docs]</a>    <span class="k">def</span> <span class="nf">_treat_duplicatas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Remove duplicatas na base de Contrato Diárias </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span> 
+                      <span class="o">.</span><span class="n">dropDuplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">])</span> 
+                      <span class="o">.</span><span class="n">dropDuplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">])</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_timestamp</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span>
+                  <span class="p">)</span></div>
+    
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._filter_max_data_abertura"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._filter_max_data_abertura">[docs]</a>    <span class="k">def</span> <span class="nf">_filter_max_data_abertura</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Filtra a base de Contrato Diárias para conter apenas datas até a última data de abertura de contrato disponível</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Última data de abertura de contrato</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_data_abertura</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">collect</span><span class="p">()][</span><span class="mi">0</span><span class="p">]</span>
+        
+        <span class="c1"># Restrição de análise até data de análise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_abertura</span><span class="p">)</span></div>
+        
+    <span class="c1"># ---------------------- (removi o titulo daqui e joguei dentro da descrição da função) ----------------------</span>
+        
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_col_t_and_tb"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_col_t_and_tb">[docs]</a>    <span class="k">def</span> <span class="nf">_add_col_t_and_tb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Definição do tempo entre locações por cliente</span>
+<span class="sd">        Acrescenta colunas T e Tb, indicando, respectivamente, a quantidade de dias até o próximo contrato e desde o contrato anterior do cliente</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cliente&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">datediff</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lag</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;Tb&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">datediff</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">lag</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_abertura</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                                        <span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">datediff</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_data_abertura</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)))</span> 
+                                        <span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">))</span>
+                                 <span class="p">)</span>
+                  <span class="p">)</span></div>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._fix_col_abertura"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._fix_col_abertura">[docs]</a>    <span class="k">def</span> <span class="nf">_fix_col_abertura</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza o join da base Contratos, nas linhas que se referem à abertura de contrato, para trazer informações sobre o contrato-mãe (data fechamento, status, tipo)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span>
+                     <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data_date&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_timestamp</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))))</span> 
+                     <span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">,</span> <span class="s1">&#39;cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;data_date&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols_drop_tmp</span><span class="p">)</span> 
+                     <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_date&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;cd_contrato_mae&#39;</span><span class="p">,</span> <span class="s1">&#39;cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="s1">&#39;abertura&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;dt_fechamento&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;tipo_contrato&#39;</span><span class="p">)</span>
+                  <span class="p">)</span></div>
+
+    <span class="c1"># ---------------------- Definição do status do cliente ----------------------</span>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_col_status"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_col_status">[docs]</a>    <span class="k">def</span> <span class="nf">_add_col_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta coluna de status do cliente, com base no tempo entre locações</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Definição dos status do cliente</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;abertura&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;Tb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">()),</span> <span class="s1">&#39;Novo&#39;</span><span class="p">)</span>
+                                                <span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;abertura&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;Tb&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">365</span><span class="p">),</span> <span class="s1">&#39;Recorrente&#39;</span><span class="p">)</span>
+                                                <span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;abertura&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;Tb&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">365</span><span class="p">),</span> <span class="s1">&#39;Reativado&#39;</span><span class="p">)</span>
+                                    <span class="p">)</span>
+                
+        <span class="c1"># Propaga o status adquirido na abertura do contrato até a próxima abertura</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cliente&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">last</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">),</span> <span class="n">ignorenulls</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_col_churn"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_col_churn">[docs]</a>    <span class="k">def</span> <span class="nf">_add_col_churn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de churn (flag e data de churn)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;churn&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">365</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data_churn&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;churn&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">date_add</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">),</span> <span class="mi">365</span><span class="p">)))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+                  <span class="p">)</span> </div>
+    
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_cols_info_date_df"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_cols_info_date_df">[docs]</a>    <span class="k">def</span> <span class="nf">_add_cols_info_date_df</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de data (ano, mês, dia) na base Contrato Diárias</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="n">info_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;data_churn&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;weekofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;dayofmonth&#39;</span><span class="p">])</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_year&#39;</span><span class="p">,</span> <span class="s1">&#39;ano&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_month&#39;</span><span class="p">,</span> <span class="s1">&#39;mes&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_weekofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;semana&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_dayofmonth&#39;</span><span class="p">,</span> <span class="s1">&#39;dia&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;semestre&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;mes&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_churn_year&#39;</span><span class="p">,</span> <span class="s1">&#39;ano_churn&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_churn_month&#39;</span><span class="p">,</span> <span class="s1">&#39;mes_churn&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_churn_weekofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;semana_churn&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_churn_dayofmonth&#39;</span><span class="p">,</span> <span class="s1">&#39;dia_churn&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;semestre_churn&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;mes_churn&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+                  <span class="p">)</span></div>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._add_cols_info_date_contratos"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._add_cols_info_date_contratos">[docs]</a>    <span class="k">def</span> <span class="nf">_add_cols_info_date_contratos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de data (ano, mês, dia) na base Contratos</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">info_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;weekofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;dayofmonth&#39;</span><span class="p">])</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_year&#39;</span><span class="p">,</span> <span class="s1">&#39;ano&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_month&#39;</span><span class="p">,</span> <span class="s1">&#39;mes&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_weekofyear&#39;</span><span class="p">,</span> <span class="s1">&#39;semana&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;data_dayofmonth&#39;</span><span class="p">,</span> <span class="s1">&#39;dia&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+    <span class="c1"># ---------------------- Base de clientes completa e seus respectivos status atuais ----------------------</span>
+    
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._create_df_clientes"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._create_df_clientes">[docs]</a>    <span class="k">def</span> <span class="nf">_create_df_clientes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Cria a base Clientes, mantendo o status atribuído a ele na sua última ocorrência na base de Contrato Diárias</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cliente&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_clientes</span> <span class="o">=</span> <span class="p">(</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                               <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                               <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;row == 1&#39;</span><span class="p">)</span> 
+                               <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cliente&#39;</span><span class="p">,</span><span class="s1">&#39;status&#39;</span><span class="p">,</span><span class="s1">&#39;churn&#39;</span><span class="p">)</span> 
+                               <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;churn&#39;</span><span class="p">)</span><span class="o">==</span><span class="kc">True</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">&quot;Churn&quot;</span><span class="p">))</span>
+                                                      <span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;status&#39;</span><span class="p">))</span>
+                                          <span class="p">)</span> 
+                           <span class="p">)</span></div>
+
+    <span class="c1"># ---------------------- Nova visão de semana  -----------------------------</span>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento._new_referencia_semana"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento._new_referencia_semana">[docs]</a>    <span class="k">def</span> <span class="nf">_new_referencia_semana</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Cria a base Semanas.</span>
+<span class="sd">        Realiza join da base Semanas com a base Contratos e com a base Contrato Diárias</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Cria DF referência das semanas</span>
+        <span class="n">min_year</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">min_year</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;min_year&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">collect</span><span class="p">()][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span> <span class="o">=</span> <span class="n">get_week_init_end_years</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">)</span>
+        
+        <span class="c1"># Contratos (coluna data)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="p">,</span> 
+                                                  <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="o">.</span><span class="n">week_init</span><span class="p">)</span> <span class="o">&amp;</span> 
+                                                  <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_contratos</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="o">.</span><span class="n">week_end</span><span class="p">),</span> 
+                                                  <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Precisa renomear antes do join por expressão</span>
+        <span class="n">df_referencia_semana_churn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">([</span><span class="s1">&#39;&#39;</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;_churn&#39;</span><span class="p">))</span>
+
+        <span class="c1"># DF (colunas data e data_churn)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+                      <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="p">,</span> 
+                            <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="o">.</span><span class="n">week_init</span><span class="p">)</span> <span class="o">&amp;</span> 
+                            <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_referencia_semana</span><span class="o">.</span><span class="n">week_end</span><span class="p">),</span> 
+                            <span class="s1">&#39;left&#39;</span><span class="p">)</span> 
+                      <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_referencia_semana_churn</span><span class="p">,</span>
+                            <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">data_churn</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">df_referencia_semana_churn</span><span class="o">.</span><span class="n">week_init_churn</span><span class="p">)</span> <span class="o">&amp;</span> 
+                            <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">data_churn</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">df_referencia_semana_churn</span><span class="o">.</span><span class="n">week_end_churn</span><span class="p">),</span> 
+                           <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                  <span class="p">)</span></div>
+        
+    <span class="c1"># ---------------------- All together -----------------------------</span>
+
+<div class="viewcode-block" id="DeepDiveCRM_Tratamento.execute_treatments"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_crm.DeepDiveCRM_Tratamento.execute_treatments">[docs]</a>    <span class="k">def</span> <span class="nf">execute_treatments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executa tratamentos das bases Contratos, Contrato Diárias e Clientes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rename_cols_df_contratos</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_col_abertura</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_col_diarias</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_df</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_explode_diarias</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_treat_duplicatas</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_max_data_abertura</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_col_t_and_tb</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fix_col_abertura</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_col_status</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_col_churn</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_cols_info_date_df</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_cols_info_date_contratos</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_df_clientes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_referencia_semana</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

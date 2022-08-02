@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.utils.queries.dafabet &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.utils.queries.dafabet</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.utils.queries.dafabet</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.loop_try</span> <span class="kn">import</span> <span class="n">loop_try</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.queries.webdriver_chrome</span> <span class="kn">import</span> <span class="n">WebdriverChrome</span>
+
+<span class="kn">from</span> <span class="nn">cafu.metadata.paths</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="n">r</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;credentials&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/dafabet.json&#39;</span><span class="p">)</span>
+<span class="n">credentials_dafabet</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<span class="n">user</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">credentials_dafabet</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">],</span> <span class="n">credentials_dafabet</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">logs.txt&#39;</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
+                    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> 
+                    <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y %I:%M:%S %p&#39;</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Login"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.dafabet.Login">[docs]</a><span class="k">class</span> <span class="nc">Login</span><span class="p">(</span><span class="n">WebdriverChrome</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Faz o login no site Dafabet</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        start_webdriver: (bool) se o Chrome driver deve ser iniciado</span>
+<span class="sd">        headless: (bool) se o navegador será mostrado ou não</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_webdriver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">start_webdriver</span><span class="p">,</span> <span class="n">headless</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Login.login"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.dafabet.Login.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Faz o login no site Dafabet</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># css selector</span>
+        <span class="n">user_path</span> <span class="o">=</span> <span class="s1">&#39;#LoginForm_username&#39;</span>
+        <span class="n">password_path</span> <span class="o">=</span> <span class="s1">&#39;#LoginForm_password&#39;</span>
+        <span class="n">enter_button_path</span> <span class="o">=</span> <span class="s1">&#39;#LoginForm_submit&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># get elements</span>
+            <span class="n">user_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_css_selector</span><span class="p">(</span><span class="n">user_path</span><span class="p">)</span>
+            <span class="n">password_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_css_selector</span><span class="p">(</span><span class="n">password_path</span><span class="p">)</span>
+            <span class="n">enter_button_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_element_by_css_selector</span><span class="p">(</span><span class="n">enter_button_path</span><span class="p">)</span>
+
+            <span class="c1"># send values</span>
+            <span class="n">user_element</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="n">password_element</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+            <span class="n">enter_button_element</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+            
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SUCCESS utils.queries.dafabet.Login.login: &quot;</span>
+                         <span class="s2">&quot;Function executed successfully&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR utils.queries.dafabet.Login.login: Unexpected error: &quot;</span>
+                          <span class="s2">&quot;Could not execute function&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div></div>
+        
+<div class="viewcode-block" id="TrafficOddsPartida"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.dafabet.TrafficOddsPartida">[docs]</a><span class="k">class</span> <span class="nc">TrafficOddsPartida</span><span class="p">(</span><span class="n">Login</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tráfego entre as partidas de um campeonato</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        start_webdriver: (bool) se o Chrome driver deve ser iniciado</span>
+<span class="sd">        headless: (bool) se o navegador será mostrado ou não</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_webdriver</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">start_webdriver</span><span class="p">,</span> <span class="n">headless</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="TrafficOddsPartida.get_quantidade_partidas"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.dafabet.TrafficOddsPartida.get_quantidade_partidas">[docs]</a>    <span class="k">def</span> <span class="nf">get_quantidade_partidas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Quantidade de partidas no campeonato</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">partidas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s1">&#39;more_markets&#39;</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">partidas</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">response</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SUCCESS utils.queries.dafabet.TrafficOddsPartida.get_quantidade_partidas: &quot;</span>
+                             <span class="s2">&quot;Function executed successfully&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;WARNING utils.queries.dafabet.TrafficOddsPartida.get_quantidade_partidas: &quot;</span>
+                                <span class="s2">&quot;No matches found&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR utils.queries.dafabet.TrafficOddsPartida.get_quantidade_partidas: &quot;</span>
+                          <span class="s2">&quot;Unexpected error: Could not execute function&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+            
+            <span class="k">return</span>     </div>
+        
+<div class="viewcode-block" id="TrafficOddsPartida.join_link_odds_partida"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.dafabet.TrafficOddsPartida.join_link_odds_partida">[docs]</a>    <span class="k">def</span> <span class="nf">join_link_odds_partida</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">max_iterate</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Entra dentro do link de uma partida, no campeonato. </span>
+<span class="sd">        Barra de progresso para a quantidade de tentativas, em relação à quantidade máxima &lt;max_iterate&gt;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index: (int) índice da partida do campeonato</span>
+<span class="sd">            max_iterate: número máximo de tentativas</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: descrição da partida, quando o método é bem sucedido</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">def</span> <span class="nf">_try_join_link_odds_partida</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">partidas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s1">&#39;more_markets&#39;</span><span class="p">)</span>
+                <span class="n">qt_odds</span> <span class="o">=</span> <span class="n">partidas</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                <span class="k">if</span> <span class="n">qt_odds</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;WARNING utils.queries.dafabet.TrafficOddsPartida.join_link_odds_partida: &quot;</span>
+                                    <span class="s2">&quot;Did not enter in link because quantity of odds equal zero&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+                <span class="n">partidas</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+                <span class="n">descricao_partida</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">descricao_partida_texto</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s1">&#39;event-header-description&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida_texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">9</span><span class="p">:]</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida_texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; vs &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida_texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; vs &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span> <span class="c1"># Evento ao-vivo</span>
+                    <span class="n">descricao_partida_texto</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">find_elements_by_class_name</span><span class="p">(</span><span class="s1">&#39;live-event&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ao vivo&#39;</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida_texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; vs &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida_texto</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; vs &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">descricao_partida</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">success</span><span class="p">,</span> <span class="n">descricao_partida</span> <span class="o">=</span> <span class="n">loop_try</span><span class="p">(</span><span class="n">_try_join_link_odds_partida</span><span class="p">,</span> <span class="n">max_iterate</span><span class="p">,</span> 
+                                              <span class="n">time_sleep</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">bool_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">success</span> <span class="ow">and</span> <span class="p">(</span><span class="n">descricao_partida</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SUCCESS utils.queries.dafabet.TrafficOddsPartida.join_link_odds_partida: &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Function executed successfully. &lt;index&gt;=</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">, &lt;max_iterate&gt;=</span><span class="si">{</span><span class="n">max_iterate</span><span class="si">}</span><span class="s2">. &quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descricao_partida</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">descricao_partida</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.queries.dafabet.TrafficOddsPartida.join_link_odds_partida: &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;Unexpected error: Could not execute function with default max_iterate. &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;&lt;index&gt;=</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">, &lt;max_iterate&gt;=</span><span class="si">{</span><span class="n">max_iterate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">descricao_partida</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

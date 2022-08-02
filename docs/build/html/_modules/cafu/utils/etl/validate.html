@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.utils.etl.validate &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.utils.etl.validate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.utils.etl.validate</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.paths</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="n">path_metadata</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;datalake&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/metadata.json&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/logs.txt&#39;</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
+                    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> 
+                    <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y %I:%M:%S %p&#39;</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="_validate_invalidate_datalake"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate._validate_invalidate_datalake">[docs]</a><span class="k">def</span> <span class="nf">_validate_invalidate_datalake</span><span class="p">(</span><span class="n">success_failed</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Método interno da biblioteca cafu.</span>
+<span class="sd">    Valida ou invalida as atualizações no arquivo datalake/metadata.json. </span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        success_failed: (bool) success or failed</span>
+<span class="sd">        args: (list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">_update_jogos_ids</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                        <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> doesn&#39;t exist in metadata[&#39;jogos_ids&#39;]&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_partidas</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                            <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                        <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">4</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> doesn&#39;t exist in metadata[&#39;partidas&#39;]&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_update_jogadores</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                            <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                        <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;evaluation&#39;</span><span class="p">:</span>
+                    <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">4</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;jogadores&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">success_failed</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> doesn&#39;t exist in metadata[&#39;jogadores&#39;]&quot;</span><span class="p">)</span>
+        
+    <span class="k">if</span> <span class="n">success_failed</span><span class="o">==</span><span class="s1">&#39;success&#39;</span><span class="p">:</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="s1">&#39;validate_datalake&#39;</span>
+        <span class="n">complement_help</span> <span class="o">=</span> <span class="s1">&#39;Valida&#39;</span>
+    <span class="k">elif</span> <span class="n">success_failed</span><span class="o">==</span><span class="s1">&#39;failed&#39;</span><span class="p">:</span>
+        <span class="n">function</span> <span class="o">=</span> <span class="s1">&#39;invalidate_datalake&#39;</span>
+        <span class="n">complement_help</span> <span class="o">=</span> <span class="s1">&#39;Invalida&#39;</span>
+            
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_metadata</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                      <span class="s2">&quot;Could not import datalake/metadata.json&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">return</span>
+    
+    <span class="n">help_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">             </span><span class="si">{</span><span class="n">complement_help</span><span class="si">}</span><span class="s2"> as atualizações no arquivo datalake/metadata.json. Quando todas as chaves</span>
+<span class="s2">             do dicionário são passadas, a atualização sempre ocorre, caso contrário a atualização</span>
+<span class="s2">             ocorre apenas no status &quot;evaluation&quot;</span>
+
+<span class="s2">             Args:</span>
+<span class="s2">                 Chaves do dicionário datalake/metadata.json, que serão verificadas </span>
+<span class="s2">             &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">help_</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;jogos_ids&#39;</span><span class="p">:</span>
+            <span class="n">_update_jogos_ids</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;partidas&#39;</span><span class="p">:</span>
+            <span class="n">_update_partidas</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;jogadores&#39;</span><span class="p">:</span>
+            <span class="n">_update_jogadores</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;Could not update metadata. &lt;args&gt;=</span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">return</span>
+        
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_metadata</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR utils.etl.validate.</span><span class="si">{</span><span class="n">function</span><span class="si">}</span><span class="s2">: &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;Could not save metadata. &lt;args&gt;=</span><span class="si">{</span><span class="n">args</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="validate_datalake"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.validate_datalake">[docs]</a><span class="k">def</span> <span class="nf">validate_datalake</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Valida as atualizações no arquivo datalake/metadata.json. Quando todas as chaves</span>
+<span class="sd">    do dicionário são passadas, a validação sempre ocorre, caso contrário a atualização</span>
+<span class="sd">    ocorre apenas no status &quot;evaluation&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        strs: chaves do dicionário datalake/metadata.json, que serão verificadas </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">_validate_invalidate_datalake</span><span class="p">(</span><span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
+    
+   
+        
+<div class="viewcode-block" id="invalidate_datalake"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.invalidate_datalake">[docs]</a><span class="k">def</span> <span class="nf">invalidate_datalake</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invalida as atualizações no arquivo datalake/metadata.json. Quando todas as chaves</span>
+<span class="sd">    do dicionário são passadas, a atualização sempre ocorre, caso contrário a atualização</span>
+<span class="sd">    ocorre apenas no status &quot;evaluation&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        strs: chaves do dicionário datalake/metadata.json, que serão verificadas </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">_validate_invalidate_datalake</span><span class="p">(</span><span class="s1">&#39;failed&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ValidateExecution"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.ValidateExecution">[docs]</a><span class="k">class</span> <span class="nc">ValidateExecution</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Análise da execução do código.</span>
+<span class="sd">    &lt;self.df_log&gt;: (pandas dataframe) logs gerados no dia &lt;day&gt;.</span>
+<span class="sd">    &lt;self.df_partidas_failed&gt;: (pandas dataframe) falhas geradas (quais tabelas em datalake/partidas)</span>
+<span class="sd">    &lt;self.important_functions&gt;: (list) funções importantes para serem passadas como argumento </span>
+<span class="sd">    no método &lt;self.print_description_error&gt;</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        days: (list of strs) dias de execuções, format &#39;YYYY-mm-dd&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">days</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">important_functions</span> <span class="o">=</span> <span class="p">[</span>
+                                    <span class="s1">&#39;etl.data_lake.partidas_campeonato.partidas_campeonato&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;utils.loop_try.loop_try&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;queries.Partida.__init__&#39;</span>
+                                   <span class="p">]</span>
+        <span class="c1"># dataframe from logs</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="n">days</span><span class="p">:</span>
+            <span class="n">log_path</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/logs.txt&#39;</span>
+            <span class="n">log_path</span> <span class="o">=</span> <span class="n">log_path</span><span class="p">[:</span><span class="mi">29</span><span class="p">]</span><span class="o">+</span><span class="n">day</span><span class="o">+</span><span class="n">log_path</span><span class="p">[</span><span class="mi">39</span><span class="p">:]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">lines_day</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span> <span class="o">+</span> <span class="n">lines_day</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;function&#39;</span><span class="p">,</span> <span class="s1">&#39;description1&#39;</span><span class="p">,</span> <span class="s1">&#39;description2&#39;</span><span class="p">]</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> <span class="s1">&#39;SUCCESS&#39;</span><span class="p">,</span> <span class="s1">&#39;P-1 SUCCESS&#39;</span><span class="p">,</span><span class="s1">&#39;WARNING&#39;</span><span class="p">,</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">div</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">div</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">div</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">types</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}</span><span class="s1"> &#39;</span><span class="p">)</span>
+                    <span class="n">j</span><span class="o">+=</span><span class="mi">1</span>
+                <span class="n">date</span> <span class="o">=</span> <span class="n">div</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">type_</span> <span class="o">=</span> <span class="n">types</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">function</span> <span class="o">=</span> <span class="n">div</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">description1</span> <span class="o">=</span> <span class="n">div</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">function</span><span class="o">+</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">date</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">description1</span><span class="p">,</span> <span class="p">[]])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+        
+        <span class="c1"># dataframe from metadata.partidas datalake</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;datalake&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/metadata.json&#39;</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="n">failed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">]:</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;partidas&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;failed&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="n">failed</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">f</span><span class="p">])</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;campeonato&#39;</span><span class="p">,</span> <span class="s1">&#39;temporada&#39;</span><span class="p">,</span> <span class="s1">&#39;jogo_id&#39;</span><span class="p">,</span> <span class="s1">&#39;failed&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_partidas_failed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                                               <span class="n">failed</span><span class="p">,</span> 
+                                               <span class="n">columns</span><span class="o">=</span><span class="n">columns</span>
+                                              <span class="p">)</span>
+        
+    
+<div class="viewcode-block" id="ValidateExecution.warning_types"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.ValidateExecution.warning_types">[docs]</a>    <span class="k">def</span> <span class="nf">warning_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filtra os warnings gerados e agrupa pela coluna functions. Resultado salvo em &lt;self.df_warning&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">index_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;WARNING&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_warning</span> <span class="o">=</span> <span class="p">(</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="n">index_filter</span><span class="p">]</span>
+                              <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">)[</span><span class="s1">&#39;function&#39;</span><span class="p">]</span>
+                              <span class="o">.</span><span class="n">count</span><span class="p">()</span>
+                              <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                          <span class="p">)</span></div>
+        
+<div class="viewcode-block" id="ValidateExecution.error_types"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.ValidateExecution.error_types">[docs]</a>    <span class="k">def</span> <span class="nf">error_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Filtra os erros gerados e agrupa pela coluna functions. Resultado salvo em &lt;self.df_error&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">index_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ERROR&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_error</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="n">index_filter</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;function&#39;</span><span class="p">)[</span><span class="s1">&#39;function&#39;</span><span class="p">]</span>
+                            <span class="o">.</span><span class="n">count</span><span class="p">()</span>
+                            <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                        <span class="p">)</span></div>
+        
+<div class="viewcode-block" id="ValidateExecution.print_description_warning"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.ValidateExecution.print_description_warning">[docs]</a>    <span class="k">def</span> <span class="nf">print_description_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Printa o valor na coluna description1, para cada warning gerado na função &lt;function&gt;</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            function: (str) exemplos importantes em &lt;self.important_functions&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">index_filter</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;WARNING&#39;</span><span class="p">)</span><span class="o">&amp;</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">function</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="n">index_filter</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;description1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="ValidateExecution.print_description_error"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.ValidateExecution.print_description_error">[docs]</a>    <span class="k">def</span> <span class="nf">print_description_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Printa o valor na coluna description1, para cada erro gerado na função &lt;function&gt;</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            function: (str) exemplos importantes em &lt;self.important_functions&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">index_filter</span> <span class="o">=</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ERROR&#39;</span><span class="p">)</span><span class="o">&amp;</span>
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;function&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">function</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="n">index_filter</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_log</span><span class="p">[</span><span class="s1">&#39;description1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">()</span></div></div>
+            
+<div class="viewcode-block" id="first_validation_execution"><a class="viewcode-back" href="../../../../module/cafu.utils.etl.html#cafu.utils.etl.validate.first_validation_execution">[docs]</a><span class="k">def</span> <span class="nf">first_validation_execution</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Primeira validação da execução do código.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        day: (str) dia da execução, format &#39;YYYY-mm-dd&#39;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">         dict: funções importantes que geraram erros - quantidade de erros gerados</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">today</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">())</span>
+    <span class="n">help_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            Primeira validação da execução do código.</span>
+<span class="s2">    </span>
+<span class="s2">            Args:</span>
+<span class="s2">                day: (list of strs) dias de execuções, format &#39;YYYY-mm-dd&#39;</span>
+<span class="s2">                Ex (dia atual): </span><span class="si">{</span><span class="n">today</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">            Returns:</span>
+<span class="s2">                 dict: funções importantes que geraram erros - quantidade de erros gerados</span>
+<span class="s2">             &quot;&quot;&quot;</span>
+    
+    <span class="n">args</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">help_</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="n">args</span>
+        
+    <span class="n">val</span> <span class="o">=</span> <span class="n">ValidateExecution</span><span class="p">(</span><span class="n">days</span><span class="p">)</span>
+    <span class="n">val</span><span class="o">.</span><span class="n">error_types</span><span class="p">()</span>
+    <span class="n">val</span><span class="o">.</span><span class="n">warning_types</span><span class="p">()</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">f</span><span class="p">:</span> <span class="n">val</span><span class="o">.</span><span class="n">df_error</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">important_functions</span> 
+                                            <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">df_error</span>
+                        <span class="p">}</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;warning&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                           <span class="n">f</span><span class="p">:</span> <span class="n">val</span><span class="o">.</span><span class="n">df_warning</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">important_functions</span> 
+                                                <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">df_warning</span>
+                          <span class="p">}</span>
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.queries.query_contratos &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.queries.query_contratos</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.queries.query_contratos</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.types</span> <span class="kn">import</span> <span class="n">DateType</span><span class="p">,</span> <span class="n">StringType</span><span class="p">,</span> <span class="n">IntegerType</span><span class="p">,</span> <span class="n">FloatType</span><span class="p">,</span> <span class="n">LongType</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.window</span> <span class="kn">import</span> <span class="n">Window</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.gcs</span> <span class="kn">import</span> <span class="n">read_from_gcs</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.spark_</span> <span class="kn">import</span> <span class="n">read_BQ</span>
+<span class="kn">from</span> <span class="nn">modulos.process.date</span> <span class="kn">import</span> <span class="n">info_date</span>
+<span class="kn">from</span> <span class="nn">modulos.process.tratamento_res_cont</span> <span class="kn">import</span> <span class="n">tipo_origem</span><span class="p">,</span> <span class="n">segmento_cliente</span>
+<span class="kn">from</span> <span class="nn">modulos.process.de_paras</span> <span class="kn">import</span> <span class="n">de_para_valores_coluna</span>
+<span class="kn">from</span> <span class="nn">modulos.process.renamer_columns</span> <span class="kn">import</span> <span class="n">renamer_columns</span>
+<span class="kn">from</span> <span class="nn">modulos.read_metadata</span> <span class="kn">import</span> <span class="n">read_metadata</span>
+<span class="n">meta_data</span> <span class="o">=</span> <span class="n">read_metadata</span><span class="p">()</span>
+
+<span class="kn">from</span> <span class="nn">pyspark.sql.dataframe</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+<div class="viewcode-block" id="transform"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.transform">[docs]</a><span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span> <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+<span class="n">DataFrame</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+
+<div class="viewcode-block" id="QueryContratos"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos">[docs]</a><span class="k">class</span> <span class="nc">QueryContratos</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Query para montar a base de Contratos dentro do período especificado [&lt;start_datetime&gt;, &lt;end_datetime&gt;] e com os status especificados em &lt;list_status_contrato&gt;</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        spark: (spark session)</span>
+<span class="sd">        start_datetime: (str) Data inicial, no formato %Y-%m-%d</span>
+<span class="sd">        end_datetime: (str) Data final, no formato %Y-%m-%d, optional</span>
+<span class="sd">        list_status_contrato: (list) status dos contratos à serem filtrados, optional</span>
+<span class="sd">        final_columns_select_renamer: (dict) colunas do dataframe final, mapa para renomear as colunas, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spark</span><span class="p">,</span> <span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">list_status_contrato</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">final_columns_select_renamer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_status_contrato</span> <span class="o">=</span> <span class="n">list_status_contrato</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span> <span class="o">=</span> <span class="n">read_from_gcs</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">],</span>
+                                              <span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;select_renamer_cols&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;select_initial_cols&quot;</span><span class="p">],</span>
+                                              <span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;select_renamer_cols&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_columns_select_renamer</span> <span class="o">=</span> <span class="n">final_columns_select_renamer</span>
+        
+        <span class="c1"># mapeia colunas que serão utilizadas na função add_calculated_columns_segmento</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">de_para_renamer_cols_segmento</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;desc_segmento_cliente_agvig&#39;</span><span class="p">:</span> <span class="s1">&#39;desc_segmento_cliente_agvig&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;desc_segmento_cliente_venced&#39;</span><span class="p">:</span> <span class="s1">&#39;descriosegmentoclientevenced&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_agencia_viagem&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_cliente_agvig_replac&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_cliente&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_produto&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_produto&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;tipo_contrato&#39;</span><span class="p">:</span> <span class="s1">&#39;tipo_contrato&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;cd_tarifa&#39;</span><span class="p">:</span> <span class="s1">&#39;cd_tarifa&#39;</span>
+                                             <span class="p">}</span>
+
+        <span class="n">filter_</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">start_datetime</span><span class="p">)</span> 
+        <span class="k">if</span> <span class="n">end_datetime</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filter_</span> <span class="o">=</span> <span class="n">filter_</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">end_datetime</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">list_status_contrato</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">map_cd_name</span> <span class="o">=</span> <span class="p">{</span><span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;Aberto&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="s1">&#39;Cancelado&#39;</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="s1">&#39;Fechado&#39;</span><span class="p">}</span>
+            <span class="n">list_cd_contrato</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">map_cd_name</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">list_status_contrato</span><span class="p">]</span>
+            <span class="n">filter_</span> <span class="o">=</span> <span class="n">filter_</span> <span class="o">&amp;</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">list_cd_contrato</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_contrato&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_contrato&#39;</span><span class="p">],</span> <span class="n">filter_</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_reservas</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_reservas&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_reservas&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato_complemento</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_contrato_complemento&#39;</span><span class="p">],</span>
+                                                <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_contrato_complemento&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato_atendimento_tmp</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_contrato_atendimento_tmp&#39;</span><span class="p">],</span> 
+                                                    <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_contrato_atendimento_tmp&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_tipo_contrato</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_tipo_contrato&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_tipo_contrato&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_segmento_cliente</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_segmento_cliente&#39;</span><span class="p">],</span> 
+                                            <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_segmento_cliente&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_cliente&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_cliente&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_composicao_regional</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_composicao_regional&#39;</span><span class="p">],</span> 
+                                               <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_composicao_regional&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_regional</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_regional&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_regional&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_npc_util_reserva</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_npc_util_reserva&#39;</span><span class="p">],</span> 
+                                            <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_npc_util_reserva&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente_complemento</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_cliente_complemento&#39;</span><span class="p">],</span>
+                                               <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_cliente_complemento&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fll_am_item_proposta_grp_preco</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;fll_am_item_proposta_grp_preco&#39;</span><span class="p">],</span> 
+                                                      <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;fll_am_item_proposta_grp_preco&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_tarifa_aluguel</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_tarifa_aluguel&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_tarifa_aluguel&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_lancamentos_contrato</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_lancamentos_contrato&#39;</span><span class="p">],</span> 
+                                                <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_lancamentos_contrato&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_motivo_contrato</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_motivo_contrato&#39;</span><span class="p">],</span> 
+                                           <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_motivo_contrato&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_usuario_sistema</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_usuario_sistema&#39;</span><span class="p">],</span> 
+                                           <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_usuario_sistema&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_modelo</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_modelo&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_modelo&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_agencia</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_agencia&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_agencia&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vco_veiculo</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vco_veiculo&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vco_veiculo&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_preco_produto</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_preco_produto&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_preco_produto&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_tarifa</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_tarifa&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_tarifa&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_carteira</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;vll_carteira&#39;</span><span class="p">],</span> <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;vll_carteira&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_desconto_contrato</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;bll_desconto_contrato&#39;</span><span class="p">],</span> 
+                                             <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;bll_desconto_contrato&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">npc_codigo_promocional</span> <span class="o">=</span> <span class="n">read_BQ</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;BigQuery&#39;</span><span class="p">][</span><span class="s1">&#39;npc_codigo_promocional&#39;</span><span class="p">],</span> 
+                                              <span class="n">spark</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_select_cols</span><span class="p">[</span><span class="s1">&#39;npc_codigo_promocional&#39;</span><span class="p">])</span>
+
+    <span class="c1"># ------------------------ Transformation functions --------------------------------</span>
+
+<div class="viewcode-block" id="QueryContratos._add_date_columns"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_date_columns">[docs]</a>    <span class="k">def</span> <span class="nf">_add_date_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de data (ano, mês, dia)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="n">info_date</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="p">,</span> <span class="n">columns_date</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">],</span>
+                                      <span class="n">list_info_0</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;dayofmonth&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva_year&#39;</span><span class="p">,</span> <span class="s1">&#39;ano_abertura_efetiva&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva_month&#39;</span><span class="p">,</span> <span class="s1">&#39;mes_abertura_efetiva&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva_dayofmonth&#39;</span><span class="p">,</span> <span class="s1">&#39;dia_abertura_efetiva&#39;</span><span class="p">)</span> 
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data_retorno_contrato_to_date_format&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_retorno&#39;</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;mm/dd/yyyy&#39;</span><span class="p">))</span>
+                            <span class="p">)</span> </div>
+
+<div class="viewcode-block" id="QueryContratos._define_status_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._define_status_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_define_status_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de status do contrato</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;desc_status_contrato&#39;</span><span class="p">,</span>
+                                            <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;4&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39;Aberto&#39;</span><span class="p">))</span>
+                                             <span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;5&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39;Cancelado&#39;</span><span class="p">))</span>
+                                             <span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_status_contrato&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;6&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39;Fechado&#39;</span><span class="p">))</span>
+                                           <span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._define_primeira_locacao_cliente"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._define_primeira_locacao_cliente">[docs]</a>    <span class="k">def</span> <span class="nf">_define_primeira_locacao_cliente</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta (na base Cliente) coluna indicadora de primeira locação</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;primeira_locacao&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;idc_primeira_locacao&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                                                                                  <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39;SIM&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39;NAO&#39;</span><span class="p">)))</span></div>
+
+    <span class="c1"># ------------------------ Join functions --------------------------------</span>
+
+<div class="viewcode-block" id="QueryContratos._join_contrato_complemento"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_contrato_complemento">[docs]</a>    <span class="k">def</span> <span class="nf">_join_contrato_complemento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Contrato Complemento com a base Contratos</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato_complemento</span><span class="p">,</span> <span class="s1">&#39;cd_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_promocao"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_promocao">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_promocao</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Contrato Complemento com a base Reservas, para trazer informação de percentual de desconto das promoções vigentes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_reservas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_reservas</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npc_codigo_promocional</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;idc_registro_vigente = 1&#39;</span><span class="p">),</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">bll_reservas</span><span class="o">.</span><span class="n">cd_evento</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">npc_codigo_promocional</span><span class="o">.</span><span class="n">cd_promocional</span><span class="p">,</span>
+                                                   <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_reservas"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_reservas">[docs]</a>    <span class="k">def</span> <span class="nf">_join_reservas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Reservas com a base Contratos</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_reservas</span><span class="p">,</span> <span class="s1">&#39;num_reserva&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_tipo_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_tipo_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_join_tipo_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Tipo Contrato com a base Contratos</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vll_tipo_contrato</span><span class="p">,</span> <span class="s1">&#39;cd_tipo_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_motivo_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_motivo_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_motivo_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Motivo Contrato, para trazer informação de motivo do upgrade</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vll_motivo_contrato</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_motivo&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_motivo_upgrade&#39;</span><span class="p">),</span> <span class="s1">&#39;cd_motivo_upgrade&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_veiculo"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_veiculo">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_veiculo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Veículo e Modelo, para trazer informações do veículo (placa, modelo, fabricante)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vco_veiculo</span><span class="p">,</span> <span class="s1">&#39;cd_veiculo&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vco_modelo</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;cd_fabricante&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_modelo&#39;</span><span class="p">],</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_acronym_grupo"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_acronym_grupo">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_acronym_grupo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Modelo, para trazer informação do grupo de carro que o veículo pertence</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Mantém somente o registro mais recente de cada modelo/grupo</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cd_acronym&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="s1">&#39;mod_date&#39;</span><span class="p">))</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="p">(</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">vco_modelo</span>
+                 <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_acronym&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo&#39;</span><span class="p">,</span> <span class="s1">&#39;mod_date&#39;</span><span class="p">)</span>
+                 <span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+                 <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+                 <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;row = 1&#39;</span><span class="p">)</span>
+                 <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="s1">&#39;mod_date&#39;</span><span class="p">)</span>
+             <span class="p">)</span>
+
+        <span class="c1"># Join para veículo concedido</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                    <span class="p">(</span>
+                                        <span class="n">df</span>
+                                        <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_acronym&#39;</span><span class="p">,</span> <span class="s1">&#39;acronym_veiculo_concedido&#39;</span><span class="p">)</span>
+                                        <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_grupo&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo_concedido&#39;</span><span class="p">)</span>
+                                    <span class="p">),</span>
+                                      <span class="s1">&#39;acronym_veiculo_concedido&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_cliente"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_cliente">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_cliente</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Cliente, Segmento Cliente, Cliente Complemento, Composição Regional e Regional, para trazer informações do cliente.</span>
+<span class="sd">        Algumas informações são atreladas ao cliente (data de cadastro, cartão de crédito), outras ao cliente vencedor (nome, segmento, data mínima de abertura de contrato, primeira locação, regional) e outras ao cliente condutor (documento)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_b12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_cadastro&#39;</span><span class="p">,</span> <span class="s1">&#39;idc_cartao_credito&#39;</span><span class="p">,</span> <span class="s1">&#39;num_documento&#39;</span><span class="p">)</span>
+
+        <span class="n">df_v4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vll_segmento_cliente</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_segmento&#39;</span><span class="p">,</span> <span class="s1">&#39;desc_segmento&#39;</span><span class="p">)</span>
+
+        <span class="n">df_v9</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_segmento&#39;</span><span class="p">,</span> <span class="s1">&#39;nom_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;idc_primeira_locacao&#39;</span><span class="p">)</span>
+
+        <span class="n">df_v40</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente_complemento</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_min_abertura_contrato&#39;</span><span class="p">)</span>
+
+        <span class="n">df_vreg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vco_composicao_regional</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;cd_tipo = &quot;01&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_seq_regional&#39;</span><span class="p">)</span>
+
+        <span class="n">df_vre</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vco_regional</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_seq_regional&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regional&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_regional&#39;</span><span class="p">,</span>
+                                                                                              <span class="s1">&#39;cd_regional_venda_cliente&#39;</span><span class="p">)</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">df_v9</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_vreg</span><span class="p">,</span> <span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_vre</span><span class="p">,</span> <span class="s1">&#39;cd_seq_regional&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_v40</span><span class="p">,</span> <span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="c1"># num_documento tem que vir daqui</span>
+        <span class="n">df_v46</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;num_documento&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;num_documento&#39;</span><span class="p">,</span> <span class="s1">&#39;num_documento_cliente_condutor&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_b12</span><span class="p">,</span> <span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_v4</span><span class="p">,</span> <span class="s1">&#39;cd_segmento&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;cd_segmento&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span><span class="s1">&#39;num_documento&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_v46</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_agencia"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_agencia">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_agencia</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Agência, Composição Regional e Regional, para trazer informações da agência de abertura e de fechamento</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Junta dimensões agência &lt; filial &lt; regional</span>
+        <span class="n">df_dim</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vco_agencia</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">vco_composicao_regional</span>
+                            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;cd_tipo = &quot;04&quot;&#39;</span><span class="p">)</span>
+                        <span class="p">),</span> <span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vco_regional</span><span class="p">,</span> <span class="s1">&#39;cd_seq_regional&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_agencia&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regional&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="c1"># Infos sobre agência abertura</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">df_dim</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;_abertura&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_agencia_abertura&#39;</span><span class="p">,</span>
+                                                                                       <span class="s1">&#39;cd_agencia&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;cd_agencia&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Infos sobre agência prevista fechamento</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_dim</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;_prevista_devolucao&#39;</span><span class="p">)),</span>
+                                                   <span class="s1">&#39;cd_agencia_prevista_devolucao&#39;</span><span class="p">,</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Infos sobre agência fechamento</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_dim</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="s1">&#39;_fechamento&#39;</span><span class="p">)),</span>
+                                                   <span class="s1">&#39;cd_agencia_fechamento&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Infos finais fechamento</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;cd_filial_fechamento&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_filial_fechamento&#39;</span><span class="p">),</span>
+                                                                               <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_filial_prevista_devolucao&#39;</span><span class="p">))</span>
+                                            <span class="p">)</span>
+                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;cd_regional_fechamento&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_regional_fechamento&#39;</span><span class="p">),</span>
+                                                                                 <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_regional_prevista_devolucao&#39;</span><span class="p">))</span>
+                                            <span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_carteira"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_carteira">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_carteira</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Carteira, Composição Regional e Regional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vll_carteira</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">vco_composicao_regional</span>
+                            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;cd_tipo = &quot;01&quot;&#39;</span><span class="p">)</span>
+                        <span class="p">),</span> <span class="s1">&#39;cd_filial&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vco_regional</span><span class="p">,</span> <span class="s1">&#39;cd_seq_regional&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_carteira&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regional&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_carteira&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_carteira_vencedor&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_regional&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regional_vendas&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="s1">&#39;cd_carteira_vencedor&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_lancam_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_lancam_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_lancam_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Lançamentos Contrato, para trazer informações financeiras (valor de cobertura terceiro, valor de reembolso, valor de despesas diversas)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bll_lancamentos_contrato</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_despesas_diversas&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">999</span><span class="p">,</span> <span class="mi">21</span><span class="p">]),</span>
+                                                                <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                               <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_condutor&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">507</span><span class="p">,</span>
+                                                       <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                      <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_cobertura_terceiro&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">510</span><span class="p">,</span>
+                                                                 <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                                <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                                <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_desp_diversa_cred&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;idc_deb_cre&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">10000</span><span class="p">),</span>
+                                                                <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                               <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_reembolso&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">22</span><span class="p">,</span>
+                                                        <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                       <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_combustivel&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">504</span><span class="p">,</span>
+                                                          <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                         <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_motorista&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">505</span><span class="p">,</span>
+                                                        <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                       <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_indenizacao&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">511</span><span class="p">,</span>
+                                                          <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                         <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;vlr_extra_motorista&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_lancamento&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">506</span><span class="p">,</span>
+                                                              <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_lancamento&#39;</span><span class="p">)</span>
+                                                             <span class="p">)</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                               <span class="p">)</span>
+                    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s1">&#39;cd_contrato&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vlr_despesas_diversas&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_condutor&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_cobertura_terceiro&#39;</span><span class="p">,</span>
+                                                       <span class="s1">&#39;vlr_desp_diversa_cred&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_reembolso&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_combustivel&#39;</span><span class="p">,</span>
+                                                       <span class="s1">&#39;vlr_motorista&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_indenizacao&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_extra_motorista&#39;</span><span class="p">]</span>
+                          <span class="p">]</span>
+                        <span class="p">)</span>
+                    <span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vlr_cobertura_terceiro&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_reembolso&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;vlr_despesas_diversas&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_desp_diversa_cred&#39;</span><span class="p">])</span>
+                    <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;vlr_combustivel&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_motorista&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_condutor&#39;</span><span class="p">,</span> <span class="s1">&#39;vlr_indenizacao&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="s1">&#39;cd_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_atendimento"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_atendimento">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_atendimento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Contrato Atendimento e Usuário Sistema, para trazer informações do atendente e do usuário que realizou alterações na contrato</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato_atendimento_tmp</span><span class="p">,</span> <span class="s1">&#39;cd_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                    <span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">vco_usuario_sistema</span>
+                                        <span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_usuario_sistema&#39;</span><span class="p">,</span> <span class="s1">&#39;_atendente_balcao&#39;</span><span class="p">)))</span>
+                                    <span class="p">),</span> <span class="s1">&#39;cd_atendente_balcao&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                    <span class="p">(</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">vco_usuario_sistema</span>
+                                        <span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">renamer_columns</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_usuario_sistema&#39;</span><span class="p">,</span> <span class="s1">&#39;_usuario_alteracao_contrato&#39;</span><span class="p">)))</span>
+                                    <span class="p">),</span> <span class="s1">&#39;cd_usuario_alteracao_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_preco_produto"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_preco_produto">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_preco_produto</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Preço Produto, para trazer informação da tarifa vigente na data do contrato</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Pega a máxima data de vigência do preço, antes da abertura do contrato</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;cd_tarifa&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regiao_tarifaria&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo_tarifario&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">orderBy</span><span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">desc</span><span class="p">(</span><span class="s1">&#39;dt_inicio_vigencia&#39;</span><span class="p">))</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_tarifa&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regiao_tarifaria&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo_tarifario&#39;</span><span class="p">,</span><span class="s1">&#39;dt_abertura_contrato&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bll_preco_produto</span>
+                            <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_grupo&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo_tarifario&#39;</span><span class="p">)</span>
+
+                        <span class="p">),</span>
+                          <span class="p">[</span><span class="s1">&#39;cd_tarifa&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regiao_tarifaria&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_grupo_tarifario&#39;</span><span class="p">],</span> <span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;dt_inicio_vigencia &lt;= dt_abertura_contrato&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">row_number</span><span class="p">()</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+                    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;row = 1&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;row&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                                <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;cd_tarifa&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_regiao_tarifaria&#39;</span><span class="p">,</span>
+                                               <span class="s1">&#39;cd_grupo_tarifario&#39;</span><span class="p">,</span> <span class="s1">&#39;dt_abertura_contrato&#39;</span><span class="p">],</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._join_info_descontos_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_descontos_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_descontos_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join da base Desconto Contrato, para trazer informação do valor de desconto</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">bll_desconto_contrato</span>
+                            <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="s1">&#39;id_motivo_desconto = 142&#39;</span><span class="p">)</span>
+                        <span class="p">),</span> <span class="s1">&#39;cd_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="s1">&#39;cd_contrato&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_total_desconto&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;vlr_total_desconto&#39;</span><span class="p">))</span>
+                    <span class="o">.</span><span class="n">na</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;vlr_total_desconto&#39;</span><span class="p">])</span>
+                 <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="s1">&#39;cd_contrato&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="QueryContratos._join_info_segmento"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._join_info_segmento">[docs]</a>    <span class="k">def</span> <span class="nf">_join_info_segmento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Realiza join das bases Cliente e Segmento Cliente, para trazer informação dos segmentos da agência de viagem e do cliente vencedor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vll_segmento_cliente</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cd_segmento&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;desc_segmento&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_agvig_replac&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;desc_segmento&#39;</span><span class="p">,</span> <span class="s1">&#39;desc_segmento_cliente_agvig&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cd_cliente_agvig_replac&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+
+        <span class="n">df_aux</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vll_cliente</span>
+                    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vll_segmento_cliente</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cd_segmento&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;desc_segmento&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">,</span> <span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;desc_segmento&#39;</span><span class="p">,</span> <span class="s1">&#39;descriosegmentoclientevenced&#39;</span><span class="p">)</span>
+                 <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_aux</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cd_cliente_vencedor&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span> </div>
+
+    <span class="c1"># ------------------------ Add calculated column functions --------------------------------</span>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_column_origem"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_column_origem">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_column_origem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta coluna de descrição do tipo origem</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="n">tipo_origem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="p">,</span> <span class="s1">&#39;tipo_origem&#39;</span><span class="p">,</span> <span class="s1">&#39;origem&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_column_tipo_contrato"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_column_tipo_contrato">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_column_tipo_contrato</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta coluna com o tipo do contrato (diário ou mensal)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">de_para</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Aluguel Mensal&#39;</span><span class="p">:</span> <span class="s1">&#39;Mensal&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;Contrato Diario&#39;</span><span class="p">:</span> <span class="s1">&#39;Diário&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;Contrato Diário&#39;</span><span class="p">:</span> <span class="s1">&#39;Diário&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;otherwise&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;desc_tipo_contrato&#39;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="n">de_para_valores_coluna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="p">,</span> <span class="n">de_para</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s1">&#39;desc_tipo_contrato&#39;</span><span class="p">,</span> <span class="n">new_column</span><span class="o">=</span><span class="s1">&#39;tipo_contrato&#39;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_desconto"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_desconto">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_desconto</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas com os percentuais de desconto</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;perc_desconto_especial&#39;</span><span class="p">,</span>
+                                                         <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_desconto_especial&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_receita&#39;</span><span class="p">))</span>
+                                                        <span class="p">)</span>
+                                             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;desconto_geral&#39;</span><span class="p">,</span>
+                                                         <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;perc_desconto_especial&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_discnt_amt_rc&#39;</span><span class="p">))</span>
+                                                        <span class="p">)</span>
+                                             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;perc_desconto_maximo&#39;</span><span class="p">,</span>
+                                                         <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_perc_desconto_maximo&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+                                                        <span class="p">)</span>
+                                             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;perc_desconto_minimo&#39;</span><span class="p">,</span>
+                                                         <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_perc_desconto_minimo&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+                                                        <span class="p">)</span>
+                                             <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;vlr_perc_desconto_realizado&#39;</span><span class="p">,</span> <span class="s1">&#39;perc_desconto_realizado&#39;</span><span class="p">)</span>
+                                             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;valor_desconto_gerado_pelo_codigo&#39;</span><span class="p">,</span>
+                                                         <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;perc_desc_ref_tarifario&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_diaria&#39;</span><span class="p">))</span>
+                                                        <span class="p">)</span>
+                         <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_date"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_date">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_date</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas de data (dias_entre_abertura_efetiva_e_retorno, data_fechamento_efetiva, idc_diaria_extra, diarias_cobradas_tratado)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;dt_prevista_abertura_parcial&#39;</span><span class="p">,</span> <span class="s1">&#39;data_abertura_contrato_mensal&#39;</span><span class="p">)</span>
+                                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;diff_in_seconds&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_retorno&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">LongType</span><span class="p">())</span> <span class="o">-</span>
+                                                               <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">LongType</span><span class="p">())</span>
+                                                            <span class="p">)</span>
+                                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;dias_entre_abertura_efetiva_e_retorno&#39;</span><span class="p">,</span>
+                                                            <span class="n">f</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;diff_in_seconds&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">24</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+                                                            <span class="p">)</span>
+                                                <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;qtd_diarias_cobradas_aux&#39;</span><span class="p">,</span>
+                                                            <span class="n">f</span><span class="o">.</span><span class="n">datediff</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_retorno&#39;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">))</span>
+                                                            <span class="p">)</span>
+                            <span class="p">)</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;add_calculated_columns_date&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_column_agencia_fechamento"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_column_agencia_fechamento">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_column_agencia_fechamento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Atualiza informação da agência de fechamento</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;add_calculated_column_agencia_fechamento&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span></div>
+        
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_segmento"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_segmento">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_segmento</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta coluna de segmento do cliente</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="n">segmento_cliente</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">de_para_renamer_cols_segmento</span><span class="p">)</span>    </div>
+        
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_cliente"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_cliente">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_cliente</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Atualiza informações de cliente e cliente condutor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;add_calculated_columns_cliente&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span></div>
+    
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_column_cobertura_terceiro"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_column_cobertura_terceiro">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_column_cobertura_terceiro</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta informação de valor de cobertura de terceiro</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;cobertura_terceiro&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_total_tx_seg1_rc&#39;</span><span class="p">),</span>
+                                                                                          <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_total_tx_seg2_rc&#39;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">+</span>
+                                                         <span class="n">f</span><span class="o">.</span><span class="n">coalesce</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;vlr_total_tx_seg3_rc&#39;</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_carteira"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_carteira">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_carteira</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Atualiza informações de carteira e carteira_vencedor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;add_calculated_columns_carteira&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_column_tipo_precificacao"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_column_tipo_precificacao">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_column_tipo_precificacao</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta coluna com o tipo de precificação (dinâmica ou estática)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;tipo_precificacao&#39;</span><span class="p">,</span>
+                                                         <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;dt_precificacao_estatica&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">(),</span>
+                                                                <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">&quot;Dinâmica&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">&quot;Estática&quot;</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="QueryContratos._add_calculated_columns_idc"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos._add_calculated_columns_idc">[docs]</a>    <span class="k">def</span> <span class="nf">_add_calculated_columns_idc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Método interno da classe.</span>
+<span class="sd">        Acrescenta colunas com indicadoras a respeito do cliente (cartão de crédito, pré-autorizado, pré-pagamento, primeira locação)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;query_contratos&quot;</span><span class="p">][</span><span class="s2">&quot;add_calculated_columns_idc&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span></div>
+
+    <span class="c1"># ------------------------ All steps (complete query) --------------------------------</span>
+
+<div class="viewcode-block" id="QueryContratos.join_tables"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos.join_tables">[docs]</a>    <span class="k">def</span> <span class="nf">join_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executa os métodos de join das tabelas auxiliares</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_contrato_complemento</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_promocao</span><span class="p">()</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_reservas</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_tipo_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_motivo_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_veiculo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_acronym_grupo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_cliente</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_agencia</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_carteira</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_lancam_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_atendimento</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_preco_produto</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_descontos_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_join_info_segmento</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="QueryContratos.add_calculated_columns"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos.add_calculated_columns">[docs]</a>    <span class="k">def</span> <span class="nf">add_calculated_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executa os métodos de acrescentar ou atualizar colunas</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_column_origem</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_column_tipo_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_desconto</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_date</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_column_agencia_fechamento</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_segmento</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_cliente</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_column_cobertura_terceiro</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_carteira</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_column_tipo_precificacao</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_calculated_columns_idc</span><span class="p">()</span></div>
+        
+<div class="viewcode-block" id="QueryContratos.execute_query"><a class="viewcode-back" href="../../../module/modulos.queries.html#modulos.queries.query_contratos.QueryContratos.execute_query">[docs]</a>    <span class="k">def</span> <span class="nf">execute_query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executa a Query para gerar a base de contratos, para todas as datas presentes no intervalo [&lt;start_datetime&gt;, &lt;end_datetime&gt;]</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Spark dataframe: Base de contratos, para todas as datas entre self.start_datetime e self.end_datetime</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_date_columns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_define_status_contrato</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_define_primeira_locacao_cliente</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">join_tables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_calculated_columns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_columns_select_renamer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">final_columns_select_renamer</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_columns_select_renamer</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_columns_select_renamer</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bll_contrato</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

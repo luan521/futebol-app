@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.etl.data_lake.odds &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.etl.data_lake.odds</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.etl.data_lake.odds</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">from</span> <span class="nn">cafu.utils.etl.datalake</span> <span class="kn">import</span> <span class="n">proximas_partidas</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.campeonatos_dafabet</span> <span class="kn">import</span> <span class="n">campeonato_dafabet</span>
+<span class="kn">from</span> <span class="nn">cafu.queries.odds</span> <span class="kn">import</span> <span class="n">GetOdds</span>
+<span class="kn">from</span> <span class="nn">cafu.metadata.paths</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="n">path_datalake</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;datalake&#39;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">path</span><span class="p">(</span><span class="s1">&#39;logs_cafu&#39;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;/logs.txt&#39;</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> 
+                    <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> 
+                    <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%d</span><span class="s1">/%m/%Y %I:%M:%S %p&#39;</span><span class="p">,</span>
+                    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<div class="viewcode-block" id="update_odds"><a class="viewcode-back" href="../../../../module/cafu.etl.data_lake.html#cafu.etl.data_lake.odds.update_odds">[docs]</a><span class="k">def</span> <span class="nf">update_odds</span><span class="p">(</span><span class="n">spark</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Atualiza datalake.odds. Atualiza os campeonatos que possuem jogos na data atual ou no dia seguinte</span>
+<span class="sd">    </span>
+<span class="sd">    .. figure:: ../../../imagens_doc/esquema_atualizacao.png</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        spark: (spark session) </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;INFO etl.data_lake.partidas_campeonato.update_partidas: &quot;</span>
+                 <span class="s2">&quot;Function started&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># campeonatos que terão jogos, hoje ou amanhã</span>
+    <span class="n">pr_part</span> <span class="o">=</span> <span class="n">proximas_partidas</span><span class="p">()</span>
+    <span class="n">dafabet</span> <span class="o">=</span> <span class="n">campeonato_dafabet</span><span class="p">()</span>
+    <span class="n">after_tomorrow</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">+</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">campeonatos</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">pr_part</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">pr_part</span><span class="p">[</span><span class="n">c</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">prox_jogo</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">pr_part</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="n">t</span><span class="p">],</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">prox_jogo</span><span class="o">&lt;=</span><span class="n">after_tomorrow</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">dafabet</span><span class="p">):</span>
+                    <span class="n">campeonatos</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c</span><span class="p">,</span><span class="n">t</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+            
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">campeonatos</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;INFO etl.data_lake.odds.update_odds: &quot;</span>
+                     <span class="s2">&quot;No match today or tomorrow.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+    
+    <span class="c1"># atualizando</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">campeonatos</span><span class="p">:</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">GetOdds</span><span class="p">()</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">get_campeonato_dafabet</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">descricao_partida</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">join_link_odds_partida</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">descricao_partida</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="s1">&#39;Hoje&#39;</span> <span class="ow">in</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">])</span> <span class="ow">or</span>
+                    <span class="p">(</span><span class="s1">&#39;Amanhã&#39;</span> <span class="ow">in</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">])</span>
+                   <span class="p">):</span>
+                    <span class="n">query</span><span class="o">.</span><span class="n">open_odds</span><span class="p">()</span>
+                    <span class="n">odds</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">get_odds</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">odds</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span> <span class="c1"># garantido que a coleta foi bem sucedida</span>
+                        <span class="k">return</span>
+                    <span class="n">odds</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span>
+                    <span class="n">odds</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span>
+                    <span class="n">odds</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">]</span>
+                    <span class="n">odds</span><span class="p">[</span><span class="s1">&#39;date_update&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+                    <span class="n">nome_arquivo</span> <span class="o">=</span> <span class="p">(</span>
+                                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span><span class="o">+</span>
+                                    <span class="s1">&#39; vs &#39;</span> <span class="o">+</span>
+                                    <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span><span class="o">+</span>
+                                    <span class="s1">&#39;.json&#39;</span>
+                                   <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">path_datalake</span><span class="si">}</span><span class="s1">/odds/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">nome_arquivo</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">odds</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;INFO etl.data_lake.odds.update_odds: &quot;</span>
+                                         <span class="sa">f</span><span class="s2">&quot;Updated </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> vs &quot;</span>
+                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">path_datalake</span><span class="si">}</span><span class="s1">/odds/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">path_datalake</span><span class="si">}</span><span class="s1">/odds/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">nome_arquivo</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">odds</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;INFO etl.data_lake.odds.update_odds: &quot;</span>
+                                         <span class="sa">f</span><span class="s2">&quot;Updated </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> vs &quot;</span>
+                                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR etl.data_lake.odds.update_odds: &quot;</span>
+                                          <span class="sa">f</span><span class="s2">&quot;Could not update </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_casa&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> vs &quot;</span>
+                                          <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;time_visitante&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">descricao_partida</span><span class="p">[</span><span class="s1">&#39;horario&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;ao vivo&#39;</span><span class="p">:</span>
+                    <span class="n">stop</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">query</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> <span class="c1"># encerra a sessão</span>
+            <span class="n">index</span><span class="o">+=</span><span class="mi">1</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

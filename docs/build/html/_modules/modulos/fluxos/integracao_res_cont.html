@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.fluxos.integracao_res_cont &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.fluxos.integracao_res_cont</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.fluxos.integracao_res_cont</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+<span class="kn">from</span> <span class="nn">pyspark.sql.window</span> <span class="kn">import</span> <span class="n">Window</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.gcs</span> <span class="kn">import</span> <span class="n">read_from_gcs</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.spark_</span> <span class="kn">import</span> <span class="n">save_BQ</span>
+<span class="kn">from</span> <span class="nn">modulos.utils.delta_</span> <span class="kn">import</span> <span class="n">read_delta</span><span class="p">,</span> <span class="n">update_historical_delta</span>
+<span class="kn">from</span> <span class="nn">modulos.process.unique_values</span> <span class="kn">import</span> <span class="n">unique_values</span>
+<span class="kn">from</span> <span class="nn">modulos.process.de_paras</span> <span class="kn">import</span> <span class="n">de_para_valores_coluna</span>
+<span class="kn">from</span> <span class="nn">modulos.read_metadata</span> <span class="kn">import</span> <span class="n">read_metadata</span>
+<span class="n">meta_data</span> <span class="o">=</span> <span class="n">read_metadata</span><span class="p">()</span>
+
+<div class="viewcode-block" id="IntegracaoResCont"><a class="viewcode-back" href="../../../module/modulos.fluxos.html#modulos.fluxos.integracao_res_cont.IntegracaoResCont">[docs]</a><span class="k">class</span> <span class="nc">IntegracaoResCont</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fluxo de integração das bases de reservas, contratos e reservas-GA. </span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        path_reservas: (str) caminho do dataframe em formato delta, referente a base de reservas</span>
+<span class="sd">        path_contratos: (str) caminho do dataframe em formato delta, referente a base de contratos</span>
+<span class="sd">        initial_path_to_save_result: (str) caminho no BigQuery para salvar o resultado</span>
+<span class="sd">        spark: (spark session) spark session</span>
+<span class="sd">    &quot;&quot;&quot;</span>    
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_reservas</span><span class="p">,</span> <span class="n">path_contratos</span><span class="p">,</span> <span class="n">initial_path_to_save_result</span><span class="p">,</span> <span class="n">spark</span><span class="p">):</span>        
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">columns_final</span> <span class="o">=</span> <span class="n">read_from_gcs</span><span class="p">(</span><span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;GoogleStorage&#39;</span><span class="p">][</span><span class="s1">&#39;bucket_name&#39;</span><span class="p">],</span>
+                                                    <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;GoogleStorage&#39;</span><span class="p">][</span><span class="s1">&#39;select_renamer_cols&#39;</span><span class="p">][</span><span class="s1">&#39;fluxo_integracao_res_cont_GA&#39;</span><span class="p">][</span><span class="s1">&#39;select_renamer_final_cols&#39;</span><span class="p">],</span>
+                                                    <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;GoogleStorage&#39;</span><span class="p">][</span><span class="s1">&#39;select_renamer_cols&#39;</span><span class="p">][</span><span class="s1">&#39;fluxo_integracao_res_cont_GA&#39;</span><span class="p">][</span><span class="s1">&#39;path&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spark</span> <span class="o">=</span> <span class="n">spark</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_path_to_save_result</span> <span class="o">=</span> <span class="n">initial_path_to_save_result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reservas</span> <span class="o">=</span> <span class="n">read_delta</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">datapath</span><span class="o">=</span><span class="n">path_reservas</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="n">read_delta</span><span class="p">(</span><span class="n">spark</span><span class="p">,</span> <span class="n">datapath</span><span class="o">=</span><span class="n">path_contratos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_sem_contrato_no_outliers</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                               ((vlr_diaria &gt;=20) and (vlr_diaria&lt;=1000)) and</span>
+<span class="s2">                                               (vlr_total &gt; 0) and</span>
+<span class="s2">                                               (qtd_diarias&lt;=365) and</span>
+<span class="s2">                                               (dias_anticipacao_reserva&lt;=365) and</span>
+<span class="s2">                                               (ano_criacao_reserva&gt;=2019)</span>
+<span class="s2">                                               &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canal_enxuto_site</span> <span class="o">=</span> <span class="s1">&#39;canal_enxuto=&quot;SITE&quot;&#39;</span>
+    
+<div class="viewcode-block" id="IntegracaoResCont.group_contrato_mae"><a class="viewcode-back" href="../../../module/modulos.fluxos.html#modulos.fluxos.integracao_res_cont.IntegracaoResCont.group_contrato_mae">[docs]</a>    <span class="k">def</span> <span class="nf">group_contrato_mae</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Agrupa a base de contrato por contrato mãe</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">(</span><span class="s1">&#39;contrato_mae&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span>
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;cd_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_dt_abertura_contrato_efetiva&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_dt_fechamento_contrato_efetiva&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s1">&#39;dt_fechamento_contrato_efetiva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_diarias_cobradas_tratado&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;diarias_cobradas_tratado&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_vlr_taxa_total_servico&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_taxa_total_servico&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_vlr_diarias&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_diarias&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                            <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;contrato_mae_vlr_total_contrato&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_receita&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+                         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="n">unique_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="p">,</span> <span class="n">columns_unique</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrato_mae&#39;</span><span class="p">],</span> <span class="n">columns_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">],</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="n">unique_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="p">,</span> <span class="n">columns_unique</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;num_reserva&#39;</span><span class="p">],</span> <span class="n">columns_order</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dt_abertura_contrato_efetiva&#39;</span><span class="p">],</span> <span class="n">ascending</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="IntegracaoResCont.join_dfs"><a class="viewcode-back" href="../../../module/modulos.fluxos.html#modulos.fluxos.integracao_res_cont.IntegracaoResCont.join_dfs">[docs]</a>    <span class="k">def</span> <span class="nf">join_dfs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Junta as bases de reservas, contratos e reservas-GA.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;num_reserva&#39;</span> <span class="ow">and</span> <span class="n">col</span><span class="p">[</span><span class="o">-</span><span class="mi">9</span><span class="p">:]</span> <span class="o">!=</span> <span class="s1">&#39;_contrato&#39;</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">col</span><span class="o">+</span><span class="s1">&#39;_contrato&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;fechou_contrato&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="p">(</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">reservas</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contratos</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;num_reserva&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span> 
+                                 <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fechou_contrato&#39;</span><span class="p">])</span>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="IntegracaoResCont.no_outliers"><a class="viewcode-back" href="../../../module/modulos.fluxos.html#modulos.fluxos.integracao_res_cont.IntegracaoResCont.no_outliers">[docs]</a>    <span class="k">def</span> <span class="nf">no_outliers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retira outliers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;(fechou_contrato=1) or (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_sem_contrato_no_outliers</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span> 
+        
+        <span class="n">w</span> <span class="o">=</span> <span class="n">Window</span><span class="o">.</span><span class="n">partitionBy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;max_dt_criacao_reserva&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="s1">&#39;dt_criacao_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+                                                                                         <span class="o">-</span><span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="s1">&#39;INTERVAL 1 DAYS&#39;</span><span class="p">)))</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;gs://</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;bucket_name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;fluxo_integracao_res_cont_GA&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span> <span class="o">+</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">meta_data</span><span class="p">[</span><span class="s2">&quot;GoogleStorage&quot;</span><span class="p">][</span><span class="s2">&quot;regras_criar_colunas&quot;</span><span class="p">][</span><span class="s2">&quot;fluxo_integracao_res_cont_GA&quot;</span><span class="p">][</span><span class="s2">&quot;no_outliers&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;gerar_coluna&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="s1">&#39;regra&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;max_dt_criacao_reserva&#39;</span><span class="p">)</span>
+        
+        <span class="n">de_para</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;UTILIZADA&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                   <span class="s1">&#39;otherwise&#39;</span><span class="p">:</span> <span class="mi">0</span>
+                  <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="n">de_para_valores_coluna</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="p">,</span> <span class="n">de_para</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s1">&#39;status_reserva_tratado&#39;</span><span class="p">,</span> <span class="n">new_column</span><span class="o">=</span><span class="s1">&#39;fechou_contrato&#39;</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">canal_enxuto_site</span><span class="p">)</span>     </div>
+        
+<div class="viewcode-block" id="IntegracaoResCont.base_dash"><a class="viewcode-back" href="../../../module/modulos.fluxos.html#modulos.fluxos.integracao_res_cont.IntegracaoResCont.base_dash">[docs]</a>    <span class="k">def</span> <span class="nf">base_dash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Salva os resultados no Big Query</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">columns_final</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_final</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns_final</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;dt_criacao_reserva&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;dt_criacao_reserva&#39;</span><span class="p">))</span>
+            
+        <span class="n">columns_group</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ad_group_ga&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;ano_criacao_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;anuncio_ga&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;campanha_ga_enxuta&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;campanha_ga&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;canal_origem_ga_enxuta&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;canal_origem_midia_ga_enxuta&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;carro_enxuto_contrato&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;carro_enxuto_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;conteudo_anuncio_ga&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;dia_criacao_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;dt_criacao_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;mes_criacao_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;origem_reserva&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;palavra_chave_ga&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;status_reserva_tratado&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;tipo_reserva&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span>
+                                <span class="o">.</span><span class="n">groupBy</span><span class="p">(</span><span class="o">*</span><span class="n">columns_group</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;esta_no_ga&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;num_reservas_que_estao_no_ga&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;num_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;numero_de_reservas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;dias_anticipacao_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;suma_dias_antecipacao_reserva&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;qtd_diarias_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;diarias_totais_reservadas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;qtd_diarias_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;diarias_totais_pagas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_total_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;vlr_total_reserva&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_total_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;vlr_total_contrato_pagos&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_diarias_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;vlr_diarias_reservadas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_diarias_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;vlr_diarias_pagas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_taxa_servico_reserva&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;suma_taxas_reservas&#39;</span><span class="p">),</span>
+                                                             <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;vlr_taxa_servico_contrato&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s1">&#39;suma_taxas_finais_pagas&#39;</span><span class="p">)</span>
+                                                            <span class="p">)</span>
+                            <span class="p">)</span>
+        
+        <span class="n">save_BQ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df_integrado</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_path_to_save_result</span><span class="o">+</span><span class="s1">&#39;campanhas&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spark</span><span class="p">)</span></div></div>
+        
+        
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

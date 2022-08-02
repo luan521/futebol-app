@@ -1,0 +1,83 @@
+modulos.process package
+=======================
+
+.. automodule:: modulos.process
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+Submodules
+----------
+
+modulos.process.date module
+---------------------------
+
+.. automodule:: modulos.process.date
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.de\_paras module
+--------------------------------
+
+.. automodule:: modulos.process.de_paras
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.renamer\_columns module
+---------------------------------------
+
+.. automodule:: modulos.process.renamer_columns
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.tratamento\_crm module
+--------------------------------------
+
+.. automodule:: modulos.process.tratamento_crm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.tratamento\_de\_para\_midia module
+--------------------------------------------------
+
+.. automodule:: modulos.process.tratamento_de_para_midia
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.tratamento\_res\_cont module
+--------------------------------------------
+
+.. automodule:: modulos.process.tratamento_res_cont
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.unique\_values module
+-------------------------------------
+
+.. automodule:: modulos.process.unique_values
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.process.update\_historical\_data module
+-----------------------------------------------
+
+.. automodule:: modulos.process.update_historical_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:

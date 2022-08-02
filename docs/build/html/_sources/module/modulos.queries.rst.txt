@@ -1,0 +1,38 @@
+modulos.queries package
+=======================
+
+.. automodule:: modulos.queries
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+Submodules
+----------
+
+modulos.queries.queries\_reservas module
+----------------------------------------
+
+.. automodule:: modulos.queries.queries_reservas
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.queries.query\_contratos module
+---------------------------------------
+
+.. automodule:: modulos.queries.query_contratos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.queries.query\_investimento module
+------------------------------------------
+
+.. automodule:: modulos.queries.query_investimento
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:

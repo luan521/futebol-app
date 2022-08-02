@@ -1,0 +1,40 @@
+modulos package
+===============
+
+.. automodule:: modulos
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   modulos.fluxos
+   modulos.process
+   modulos.queries
+   modulos.utils
+
+Submodules
+----------
+
+modulos.google\_credentials module
+----------------------------------
+
+.. automodule:: modulos.google_credentials
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:
+
+modulos.read\_metadata module
+-----------------------------
+
+.. automodule:: modulos.read_metadata
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :private-members:

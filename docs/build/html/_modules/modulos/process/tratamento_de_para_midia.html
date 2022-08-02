@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.process.tratamento_de_para_midia &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.process.tratamento_de_para_midia</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.process.tratamento_de_para_midia</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+
+<div class="viewcode-block" id="tratamento_de_para_midia"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_de_para_midia.tratamento_de_para_midia">[docs]</a><span class="k">def</span> <span class="nf">tratamento_de_para_midia</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">de_paras</span><span class="p">,</span> <span class="n">initial_path</span><span class="p">,</span> <span class="n">spark</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria novos colunas com valores enxutos, a partir de arquivos csv armazenados no Google Storage, e salva uma lista de valores faltantes nas tabelas de_para, quando </span>
+<span class="sd">    requerido</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: (spark dataframe) dataframe que será processado</span>
+<span class="sd">        de_paras: (list) lista de dicionários no formato {&#39;columns_df&#39;: (list), &#39;path_de_para&#39;: (str), &#39;criar_df_faltantes&#39;: (bool),&#39;regra_adicional&#39;: (str)}.</span>
+<span class="sd">                         columns_df: colunas do dataframe que serão concatenadas, e o resultado que será mapeado.</span>
+<span class="sd">                         path_de_para: completa o caminho &lt;initial_path&gt; para o csv contendo o de_para.</span>
+<span class="sd">                         criar_df_faltantes: quando True, um csv é criado na pasta &lt;initial_path&gt;/faltantes/ contendo os valores faltantes no de_para do csv.</span>
+<span class="sd">                         regra_adicional: SQL-like expression que exprime a regra para o de_para, quando o valor não é encontrado no csv de de_para.</span>
+<span class="sd">        initial_path: (str) caminho inicial, para puxar os arquivos de de_para e salvar as tabelas com valores faltantes</span>
+<span class="sd">        spark: (spark session) spark session</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        spark dataframe: dataframe &lt;df&gt; com novas colunas, contendo valores enxutos de outras colunas</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">response</span> <span class="o">=</span> <span class="n">df</span>
+    <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">de_paras</span><span class="p">:</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="n">dp</span><span class="p">[</span><span class="s1">&#39;columns_df&#39;</span><span class="p">]</span>
+        <span class="n">col_de_para</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="s1">&#39;columns_df&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">lista_concat</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">lista_concat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s1">&#39; / &#39;</span><span class="p">))</span>
+                <span class="n">lista_concat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="n">col_de_para</span> <span class="o">=</span> <span class="n">col_de_para</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">c</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="o">*</span><span class="n">lista_concat</span><span class="p">))</span>
+        
+        <span class="n">df_de_para</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">read</span><span class="o">.</span><span class="n">csv</span><span class="p">(</span><span class="n">initial_path</span><span class="o">+</span><span class="n">dp</span><span class="p">[</span><span class="s1">&#39;path_de_para&#39;</span><span class="p">],</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df_de_para</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">col_de_para</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        
+        <span class="n">col_enxuta</span> <span class="o">=</span> <span class="n">df_de_para</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dp</span><span class="p">[</span><span class="s1">&#39;regra_adicional&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">col_enxuta</span><span class="o">+</span><span class="s1">&#39;_regra_adicional&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">col_enxuta</span><span class="p">)</span><span class="o">.</span><span class="n">isNotNull</span><span class="p">(),</span> <span class="mi">0</span><span class="p">))</span>
+            
+            <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;CASE WHEN </span><span class="si">{</span><span class="n">col_enxuta</span><span class="si">}</span><span class="s2"> IS NULL THEN (</span><span class="si">{</span><span class="n">dp</span><span class="p">[</span><span class="s1">&#39;regra_adicional&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) ELSE </span><span class="si">{</span><span class="n">col_enxuta</span><span class="si">}</span><span class="s2"> END&quot;</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="p">(</span>
+                           <span class="n">response</span>
+                           <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">col_enxuta</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span> 
+                           <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">col_enxuta</span><span class="o">+</span><span class="s1">&#39;_regra_adicional&#39;</span><span class="p">])</span>
+                       <span class="p">)</span>
+            
+        <span class="k">if</span> <span class="n">dp</span><span class="p">[</span><span class="s1">&#39;criar_df_faltantes&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">dp</span><span class="p">[</span><span class="s1">&#39;regra_adicional&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">df_count_faltantes</span> <span class="o">=</span> <span class="p">(</span>
+                                         <span class="n">response</span>
+                                         <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">,</span> <span class="n">col_enxuta</span><span class="p">)</span> 
+                                         <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="n">col_enxuta</span><span class="p">)</span><span class="o">.</span><span class="n">isNull</span><span class="p">())</span> 
+                                         <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">)</span> 
+                                         <span class="o">.</span><span class="n">count</span><span class="p">()</span> 
+                                     <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df_count_faltantes</span> <span class="o">=</span> <span class="p">(</span>
+                                         <span class="n">response</span>
+                                         <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">,</span> <span class="n">col_enxuta</span><span class="p">,</span> <span class="n">col_enxuta</span><span class="o">+</span><span class="s1">&#39;_regra_adicional&#39;</span><span class="p">)</span> 
+                                         <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">col_enxuta</span><span class="si">}</span><span class="s2">_regra_adicional=1&quot;</span><span class="p">)</span> 
+                                         <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">,</span> <span class="n">col_enxuta</span><span class="p">)</span> 
+                                         <span class="o">.</span><span class="n">count</span><span class="p">()</span> 
+                                     <span class="p">)</span>
+            
+            <span class="n">df_count_faltantes</span><span class="o">.</span><span class="n">toPandas</span><span class="p">()</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">initial_path</span><span class="si">}</span><span class="s1">faltantes/</span><span class="si">{</span><span class="n">col_de_para</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">col_enxuta</span><span class="si">}</span><span class="s1">.csv&#39;</span><span class="p">,</span> 
+                                                 <span class="n">header</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dp</span><span class="p">[</span><span class="s1">&#39;columns_df&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">col_de_para</span><span class="p">)</span>
+        
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.process.date &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.process.date</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.process.date</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+<span class="kn">import</span> <span class="nn">pyspark.sql.types</span> <span class="k">as</span> <span class="nn">t</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="today"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.date.today">[docs]</a><span class="k">def</span> <span class="nf">today</span><span class="p">(</span><span class="n">add_days</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retorna a data atual, adicionada de &lt;add_days&gt;(optional)</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        add_days: (int) quantidade de dias a serem adicionados, na data atual. Optional</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        str: data_atual</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">current_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">add_days</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">current_time</span><span class="o">+</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">add_days</span><span class="p">)</span>
+        
+    <span class="n">day</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_time</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_time</span><span class="o">.</span><span class="n">month</span><span class="p">)</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_time</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">day</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">day</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="o">+</span><span class="n">day</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">month</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="o">+</span><span class="n">month</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">month</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="s1">&#39;</span></div>
+
+<div class="viewcode-block" id="dates_between"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.date.dates_between">[docs]</a><span class="k">def</span> <span class="nf">dates_between</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computa as datas dos dias no intervalo [&lt;start_datetime&gt;, &lt;end_datetime&gt;]</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        start_datetime: (str) data inicial, no formato %Y%m%d ou %Y-%m-%d</span>
+<span class="sd">        end_datetime: (str) data final, no formato %Y%m%d ou %Y-%m-%d</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        list: todas as datas, no formato %Y%m%d, entre a data inicial e a data final</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">))</span>
+    
+    <span class="n">list_dates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">dates</span><span class="p">:</span>         
+        <span class="c1"># Convertendo a data para o formato desejado</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">month</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">month</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="o">+</span><span class="n">month</span>
+        <span class="n">day</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">day</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span><span class="o">+</span><span class="n">day</span>
+        
+        <span class="n">list_dates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">year</span><span class="o">+</span><span class="n">month</span><span class="o">+</span><span class="n">day</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">list_dates</span></div>
+
+<div class="viewcode-block" id="info_date"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.date.info_date">[docs]</a><span class="k">def</span> <span class="nf">info_date</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">columns_date</span><span class="p">,</span> <span class="n">list_info_0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria colunas com informações (ano, mês, ...) sobre &lt;columns_date&gt;</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: (spark dataframe) dataframe que será processado</span>
+<span class="sd">        columns_date: (list) colunas em que serão extraídas as informações </span>
+<span class="sd">        list_info_0: (list) informações que serão coletadas das colunas &lt;columns_date&gt; [&#39;year&#39;, &#39;month&#39;, &#39;dayofmonth&#39;, &#39;dayofweek&#39;, &#39;hour&#39;, &#39;minute&#39;, &#39;second&#39;, &#39;weekofyear&#39;]</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        spark dataframe: dataframe &lt;df&gt; com novas colunas, contendo informações &lt;list_info_0&gt; sobre as colunas &lt;columns_date&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">list_info_0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">list_info_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">list_info_0</span><span class="p">]</span>
+        
+    <span class="n">de_para_info_funcao</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+                           <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                           <span class="s1">&#39;dayofmonth&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">dayofmonth</span><span class="p">,</span>
+                           <span class="s1">&#39;dayofweek&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">dayofweek</span><span class="p">,</span>
+                           <span class="s1">&#39;hour&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span>
+                           <span class="s1">&#39;minute&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span>
+                           <span class="s1">&#39;second&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> 
+                           <span class="s1">&#39;weekofyear&#39;</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">weekofyear</span><span class="p">}</span>
+    
+    <span class="n">list_info</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">de_para_info_funcao</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">list_info_0</span><span class="p">)</span>
+    
+    <span class="n">response</span> <span class="o">=</span> <span class="n">df</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns_date</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">list_info</span><span class="p">:</span>
+            <span class="n">col_info</span> <span class="o">=</span> <span class="n">col</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">info</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">col_info</span><span class="p">,</span> <span class="n">de_para_info_funcao</span><span class="p">[</span><span class="n">info</span><span class="p">](</span><span class="n">col</span><span class="p">))</span>
+    
+    <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="get_week_init_end_years"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.date.get_week_init_end_years">[docs]</a><span class="k">def</span> <span class="nf">get_week_init_end_years</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="n">spark</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria um dataframe de referência das semanas. </span>
+<span class="sd">    Os intervalos são setados usando o ano vigente como referência (início segunda-feira e fim domingo).</span>
+<span class="sd">    Os mesmos intervalos de dias são usados nos anos passados.</span>
+<span class="sd">    As semanas tem 7 dias, exceto semana do dia 29 no caso de ano bissexto.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        min_year: (int) ano mais antigo. O dataframe final vai ter intervalos de semana para todos os anos desde min_year até o ano corrente</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        spark dataframe: dataframe com as colunas &quot;week_init&quot;, &quot;week_end&quot;, &quot;referencia_semana&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Lista datas ano corrente</span>
+    <span class="n">current_year</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
+    <span class="n">list_dates</span> <span class="o">=</span> <span class="n">dates_between</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">0101&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_year</span><span class="p">),</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">1231&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_year</span><span class="p">))</span>
+    <span class="n">list_dates</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_dates</span><span class="p">]</span>
+    
+    <span class="c1"># Cria dataframe para ano corrente</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_dates</span><span class="p">]</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">StructType</span><span class="p">([</span><span class="n">t</span><span class="o">.</span><span class="n">StructField</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">StringType</span><span class="p">(),</span> <span class="kc">True</span><span class="p">),])</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">spark</span><span class="o">.</span><span class="n">createDataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Início e fim das semanas do ano corrente</span>
+    <span class="n">df_2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">date_trunc</span><span class="p">(</span><span class="s1">&#39;week&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">))</span> \
+             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">date_add</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span> \
+             <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;referencia_ano&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">current_year</span><span class="p">))</span>
+    
+    <span class="c1"># Colunas auxiliares para o mesmo intervalo de datas nos anos pra trás</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="n">current_year</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">current_year</span> <span class="o">-</span> <span class="n">i</span>
+        
+        <span class="n">df_2</span> <span class="o">=</span> <span class="n">df_2</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">add_months</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="o">*</span><span class="n">d</span><span class="p">))</span> \
+                   <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">add_months</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="o">*</span><span class="n">d</span><span class="p">))</span> \
+                   <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> 
+                               <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> 
+                                      <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">month</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> 
+                                      <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">dayofmonth</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">==</span> <span class="mi">29</span><span class="p">),</span> 
+                                      <span class="n">f</span><span class="o">.</span><span class="n">date_add</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+                                <span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))))</span> \
+                   <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> 
+                               <span class="n">f</span><span class="o">.</span><span class="n">when</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">year</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> 
+                                      <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">month</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&amp;</span> 
+                                      <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">dayofmonth</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">==</span> <span class="mi">28</span><span class="p">),</span> 
+                                      <span class="n">f</span><span class="o">.</span><span class="n">date_add</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span>
+                                <span class="o">.</span><span class="n">otherwise</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))))</span> \
+                   <span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">)</span> \
+                   <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;referencia_ano_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">f</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> \
+                   <span class="o">.</span><span class="n">distinct</span><span class="p">()</span> \
+                   <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Coluna de referência com o &quot;nome&quot; da semana</span>
+    <span class="n">df_2</span> <span class="o">=</span> <span class="n">df_2</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;referencia_semana&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">concat_ws</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> 
+                                                            <span class="n">f</span><span class="o">.</span><span class="n">concat_ws</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> 
+                                                                             <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> 
+                                                            <span class="n">f</span><span class="o">.</span><span class="n">concat_ws</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> 
+                                                                             <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="s1">&#39;string&#39;</span><span class="p">),</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="mi">1</span><span class="p">))))</span>
+        
+    <span class="c1"># Empilha semanas de todos os anos</span>
+    <span class="n">df_3</span> <span class="o">=</span> <span class="n">df_2</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">,</span><span class="s1">&#39;week_end&#39;</span><span class="p">,</span><span class="s1">&#39;referencia_semana&#39;</span><span class="p">,</span><span class="s1">&#39;referencia_ano&#39;</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">min_year</span><span class="p">,</span> <span class="n">current_year</span><span class="p">):</span>
+        <span class="n">df_3</span> <span class="o">=</span> <span class="n">df_3</span><span class="o">.</span><span class="n">unionByName</span><span class="p">(</span><span class="n">df_2</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s1">&#39;referencia_semana&#39;</span><span class="p">,</span> <span class="s1">&#39;referencia_ano_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> \
+                                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;week_init_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s1">&#39;week_init&#39;</span><span class="p">)</span> \
+                                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;week_end_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s1">&#39;week_end&#39;</span><span class="p">)</span> \
+                                    <span class="o">.</span><span class="n">withColumnRenamed</span><span class="p">(</span><span class="s1">&#39;referencia_ano_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s1">&#39;referencia_ano&#39;</span><span class="p">))</span>
+
+    <span class="n">df_3</span> <span class="o">=</span> <span class="n">df_3</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">))</span> \
+               <span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">to_date</span><span class="p">(</span><span class="s1">&#39;week_end&#39;</span><span class="p">))</span> \
+               <span class="o">.</span><span class="n">orderBy</span><span class="p">(</span><span class="s1">&#39;week_init&#39;</span><span class="p">)</span>
+            
+    <span class="k">return</span> <span class="n">df_3</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

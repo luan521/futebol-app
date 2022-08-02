@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>modulos.process.tratamento_res_cont &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../module/modules.html">modulos</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>modulos.process.tratamento_res_cont</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for modulos.process.tratamento_res_cont</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyspark.sql.functions</span> <span class="k">as</span> <span class="nn">f</span>
+<span class="kn">from</span> <span class="nn">modulos.process.de_paras</span> <span class="kn">import</span> <span class="n">de_para_valores_coluna</span>
+
+<div class="viewcode-block" id="tipo_origem"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_res_cont.tipo_origem">[docs]</a><span class="k">def</span> <span class="nf">tipo_origem</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">col_tipo_origem</span><span class="p">,</span> <span class="n">new_column</span><span class="p">,</span> <span class="n">otherwise</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria coluna com valores enxutos para a coluna &lt;col_tipo_origem&gt;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: (spark dataframe) dataframe que será processado</span>
+<span class="sd">        col_tipo_origem: (str) coluna tipo_origem no dataframe &lt;df&gt;</span>
+<span class="sd">        new_column: (str) nome da coluna que sera gerada com os valores enxutos da coluna &lt;col_tipo_origem&gt;</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        spark dataframe: dataframe &lt;df&gt; com a nova coluna &lt;new_column&gt;, contendo valores enxutos da coluna &lt;col_tipo_origem&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">de_para</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;1G&#39;</span><span class="p">:</span> <span class="s1">&#39;GALILEO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;1V&#39;</span><span class="p">:</span> <span class="s1">&#39;APOLLO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;AM&#39;</span><span class="p">:</span> <span class="s1">&#39;AMADEUS&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;AN&#39;</span><span class="p">:</span> <span class="s1">&#39;ANDROID&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;AT&#39;</span><span class="p">:</span> <span class="s1">&#39;ALUGUEL TEMPORARIO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;AV&#39;</span><span class="p">:</span> <span class="s1">&#39;WEBFACIL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;BA&#39;</span><span class="p">:</span> <span class="s1">&#39;BRASIL ASSISTENCIA&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;BB&#39;</span><span class="p">:</span> <span class="s1">&#39;BLACKBERRY&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;CI&#39;</span><span class="p">:</span> <span class="s1">&#39;CR INTER BRAZIL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;CO&#39;</span><span class="p">:</span> <span class="s1">&#39;CORPORACAO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;CR&#39;</span><span class="p">:</span> <span class="s1">&#39;CENTRAL RESERVAS&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;CT&#39;</span><span class="p">:</span> <span class="s1">&#39;CR INTERNACIONAL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;FI&#39;</span><span class="p">:</span> <span class="s1">&#39;LL INTERNCIONAL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;FT&#39;</span><span class="p">:</span> <span class="s1">&#39;FRANQUIA INTER&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;GO&#39;</span><span class="p">:</span> <span class="s1">&#39;GOL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IA&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGRACAO APOGEU&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IM&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGR. TMS-ARGOIT&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IN&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGRACAO NR&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IP&#39;</span><span class="p">:</span> <span class="s1">&#39;IPAD&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IR&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGRACAO RESERVE&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IT&#39;</span><span class="p">:</span> <span class="s1">&#39;INTERNET&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;IW&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGRACAO WOOBA&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;LE&#39;</span><span class="p">:</span> <span class="s1">&#39;LEASEPLAN&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;LI&#39;</span><span class="p">:</span> <span class="s1">&#39;FRANQUEADA&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;MA&#39;</span><span class="p">:</span> <span class="s1">&#39;MENSAL ALTERADO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;MN&#39;</span><span class="p">:</span> <span class="s1">&#39;MENSAL&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;MO&#39;</span><span class="p">:</span> <span class="s1">&#39;SITE MOBILE&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;MR&#39;</span><span class="p">:</span> <span class="s1">&#39;MENSAL RENEGOCIADO&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;MT&#39;</span><span class="p">:</span> <span class="s1">&#39;MARITMA SEGUROS&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;OT&#39;</span><span class="p">:</span> <span class="s1">&#39;INTEGRACAO OTA&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;PC&#39;</span><span class="p">:</span> <span class="s1">&#39;PRIVILEGE CORP&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;PH&#39;</span><span class="p">:</span> <span class="s1">&#39;IPHONE&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;SA&#39;</span><span class="p">:</span> <span class="s1">&#39;SUL AMERICA&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;SB&#39;</span><span class="p">:</span> <span class="s1">&#39;SABRE&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;US&#39;</span><span class="p">:</span> <span class="s1">&#39;USS&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;WP&#39;</span><span class="p">:</span> <span class="s1">&#39;WORLDSPAN&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;WS&#39;</span><span class="p">:</span> <span class="s1">&#39;SEGURADORAS&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;WW&#39;</span><span class="p">:</span> <span class="s1">&#39;WORLDWIDE&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;otherwise&#39;</span><span class="p">:</span> <span class="n">otherwise</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">de_para_valores_coluna</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">de_para</span><span class="p">,</span> <span class="n">col_tipo_origem</span><span class="p">,</span> <span class="n">new_column</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="segmento_cliente"><a class="viewcode-back" href="../../../module/modulos.process.html#modulos.process.tratamento_res_cont.segmento_cliente">[docs]</a><span class="k">def</span> <span class="nf">segmento_cliente</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">de_para_renamer_cols</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cria a coluna de segmento do cliente</span>
+<span class="sd">    </span>
+<span class="sd">    .. figure:: ../../../imagens_doc/segmento_v0.svg</span>
+<span class="sd">    </span>
+<span class="sd">       Primeira versão do segmento</span>
+<span class="sd">       </span>
+<span class="sd">    .. figure:: ../../../imagens_doc/segmento_auxiliar.svg</span>
+<span class="sd">    </span>
+<span class="sd">       Versão auxiliar do segmento</span>
+<span class="sd">       </span>
+<span class="sd">    .. figure:: ../../../imagens_doc/segmento_ajustado.svg</span>
+<span class="sd">    </span>
+<span class="sd">       Segmento ajustado</span>
+<span class="sd">       </span>
+<span class="sd">    .. figure:: ../../../imagens_doc/segmento_final.svg</span>
+<span class="sd">    </span>
+<span class="sd">       Segmento final</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: (spark dataframe) dataframe que será processado</span>
+<span class="sd">        de_para_renamer_cols: (dict) identifica as colunas no dataframe &lt;df&gt; {&#39;desc_segmento_cliente_agvig&#39;: (str),&#39;desc_segmento_cliente_venced&#39;:  (str), &#39;cd_agencia_viagem&#39;: (str), &#39;cd_cliente&#39;: (str), &#39;cd_cliente_vencedor&#39;: (str), &#39;cd_cliente_condutor&#39;: (str), &#39;cd_produto&#39;: (str), &#39;cd_tarifa&#39;: (str)}</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        spark dataframe: dataframe &lt;df&gt; com a coluna de segmento do cliente</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">df</span>
+
+    <span class="c1"># criação coluna &quot;segmento&quot;</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE WHEN (</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_agvig&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> = &quot;NAO IDENTIFICADO&quot;) or</span>
+<span class="s2">                      (</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_agvig&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> IS NULL) THEN &quot;PESSOA FÍSICA&quot;</span>
+<span class="s2">                 ELSE </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_agvig&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">            END</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;segmento_agvig&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE WHEN (</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_venced&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> = &quot;NAO IDENTIFICADO&quot;) or</span>
+<span class="s2">                      (</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_venced&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> IS NULL) THEN &quot;PESSOA FÍSICA&quot;</span>
+<span class="s2">                 ELSE </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;desc_segmento_cliente_venced&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">            END</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;segmento_venced&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_agencia_viagem&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> IS NOT NULL THEN segmento_agvig</span>
+<span class="s2">                 WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_cliente_vencedor&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> IS NOT NULL THEN segmento_venced</span>
+<span class="s2">                 ELSE &quot;PESSOA FÍSICA&quot; </span>
+<span class="s2">            END</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;segmento&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;segmento_agvig&#39;</span><span class="p">,</span> <span class="s1">&#39;segmento_venced&#39;</span><span class="p">)</span>
+
+    <span class="c1"># criação de colunas auxiliares</span>
+    <span class="n">regras_criar_colunas</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;aux1&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                     CASE WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_produto&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in (&quot;FRANQUEADA&quot;, &quot;FRANQUIA INTER&quot;, &quot;LL INTERNCIONAL&quot;) THEN &quot;Franquia&quot;</span>
+<span class="s2">                                          WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_produto&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in (&quot;PF&quot;, &quot;PESSOA FÍSICA&quot;, &quot;TRAVEL + PF&quot;,</span>
+<span class="s2">                                                                                        &quot;CR INTER BRAZIL&quot;, &quot;CR INTERNACIONAL&quot;) THEN &quot;Pessoa Fisica&quot;</span>
+<span class="s2">                                          WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_produto&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in (&quot;PJ&quot;, &quot;WORLDWIDE&quot;, &quot;SUL AMERICA&quot;, </span>
+<span class="s2">                                                                                        &quot;MENSAL&quot;, &quot;ALUGUEL TEMPORARIO&quot;, &quot;TRAVEL + PJ&quot;) THEN &quot;Pessoa Juridica&quot;</span>
+<span class="s2">                                          ELSE </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_produto&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span>
+<span class="s2">                                     END</span>
+<span class="s2">                                     &quot;&quot;&quot;</span><span class="p">,</span>
+                            <span class="s1">&#39;aux2&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                     CASE WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_agencia_viagem&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_cliente&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2"> THEN &quot;Pessoa Fisica&quot;</span>
+<span class="s2">                                          ELSE &quot;Pessoa Juridica&quot; </span>
+<span class="s2">                                     END</span>
+<span class="s2">                                     &quot;&quot;&quot;</span><span class="p">,</span>
+                            <span class="s1">&#39;segmento_auxiliar&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                                  CASE WHEN aux1 IS NOT NULL THEN aux1</span>
+<span class="s2">                                                       WHEN aux2 in (&quot;Pessoa Fisica&quot;, &quot;Pessoa Juridica&quot;) THEN aux2 </span>
+<span class="s2">                                                  END</span>
+<span class="s2">                                                  &quot;&quot;&quot;</span>
+                           <span class="p">}</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">regras_criar_colunas</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">regras_criar_colunas</span><span class="p">[</span><span class="n">col</span><span class="p">]))</span>
+        
+    <span class="c1"># criação coluna &quot;segmento_ajustado&quot;</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE WHEN (segmento in (&quot;PESSOA FÍSICA&quot;, &quot;OTA&quot;)) or </span>
+<span class="s2">                      (segmento=&quot;INDUSTRIA DE VIAGENS&quot; and </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) THEN &quot;Pessoa Física&quot;</span>
+<span class="s2">                 WHEN (segmento = &quot;PESSOA JURIDICA&quot;) or </span>
+<span class="s2">                      (segmento=&quot;INDUSTRIA DE VIAGENS&quot; and </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;cd_cliente&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;&gt;</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;cd_cliente_condutor&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">) THEN &quot;Pessoa Jurídica&quot;</span>
+<span class="s2">                 WHEN (segmento=&quot;INDUSTRIA DE VIAGENS&quot; and </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;desc_segmento_cliente_venced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">=&quot;PESSOA FÍSICA&quot;) THEN &quot;Pessoa Física&quot;</span>
+<span class="s2">                 WHEN (segmento=&quot;INDUSTRIA DE VIAGENS&quot; and </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;desc_segmento_cliente_venced&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&lt;&gt;&quot;PESSOA FÍSICA&quot;) THEN &quot;Pessoa Jurídica&quot;</span>
+<span class="s2">                 WHEN segmento = &quot;REPLACEMENT&quot; THEN &quot;Replacement&quot;</span>
+<span class="s2">                 WHEN segmento = &quot;TOTAL FLEET&quot; THEN &quot;Total Fleet&quot;</span>
+<span class="s2">                 WHEN segmento = &quot;RIDE SHARING&quot; THEN &quot;Ride Sharing&quot;</span>
+<span class="s2">                 WHEN segmento = &quot;SETOR PUBLICO&quot; THEN &quot;Setor Publico&quot;</span>
+<span class="s2">                 ELSE segmento_auxiliar</span>
+<span class="s2">            END</span>
+<span class="s2">            &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;segmento_ajustado&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;aux1&#39;</span><span class="p">,</span> <span class="s1">&#39;aux2&#39;</span><span class="p">,</span> <span class="s1">&#39;segmento_auxiliar&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># coluna final &quot;segmento&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_tarifa&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s2">&quot;cd_tarifa&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)))</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            CASE WHEN </span><span class="si">{</span><span class="n">de_para_renamer_cols</span><span class="p">[</span><span class="s1">&#39;cd_tarifa&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> in (&quot;004908&quot;, &quot;004909&quot;, &quot;004910&quot;, &quot;004911&quot;, &quot;004912&quot;, &quot;004913&quot;, </span>
+<span class="s2">                                                              &quot;004914&quot;, &quot;004915&quot;, &quot;004916&quot;, &quot;004917&quot;, &quot;004918&quot;, &quot;004919&quot;, </span>
+<span class="s2">                                                              &quot;004920&quot;, &quot;004921&quot;, &quot;004922&quot;, &quot;004951&quot;, &quot;004958&quot;, &quot;004959&quot;, </span>
+<span class="s2">                                                              &quot;004963&quot;, &quot;004964&quot;, &quot;004996&quot;, &quot;004997&quot;, &quot;004998&quot;, &quot;004999&quot;) THEN &quot;Ride Sharing&quot;</span>
+<span class="s2">                 ELSE segmento_ajustado </span>
+<span class="s2">           END</span>
+<span class="s2">           &quot;&quot;&quot;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">withColumn</span><span class="p">(</span><span class="s1">&#39;segmento&#39;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&#39;segmento_ajustado&#39;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">response</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cafu.utils.queries.partida &mdash; Sample Docs v2019.07.29 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Sample Docs
+          </a>
+              <div class="version">
+                v2019.07.29
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../module/modules.html">cafu</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Sample Docs</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+      <li>cafu.utils.queries.partida</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cafu.utils.queries.partida</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">requests</span> <span class="k">as</span> <span class="nn">r</span>
+<span class="kn">from</span> <span class="nn">html2json</span> <span class="kn">import</span> <span class="n">collect</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+
+<div class="viewcode-block" id="sem_espaco"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.sem_espaco">[docs]</a><span class="k">def</span> <span class="nf">sem_espaco</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="n">s</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">j</span><span class="o">=</span><span class="mi">0</span>
+    <span class="n">stop</span> <span class="o">=</span><span class="kc">False</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+        
+        <span class="k">while</span> <span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">stop</span><span class="o">=</span><span class="kc">True</span>
+        
+        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        
+        <span class="k">while</span> <span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">+</span><span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+                    <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">+</span><span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">stop</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">j</span> <span class="o">+=</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="padrao"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.padrao">[docs]</a><span class="k">def</span> <span class="nf">padrao</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">string</span><span class="p">):</span>
+    
+    <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">):</span> 
+        <span class="k">if</span> <span class="n">string</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="o">==</span> <span class="n">p</span><span class="p">:</span>
+            <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)])</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">ind</span></div>
+
+<div class="viewcode-block" id="padrao_inicio_fim"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.padrao_inicio_fim">[docs]</a><span class="k">def</span> <span class="nf">padrao_inicio_fim</span><span class="p">(</span><span class="n">inicio</span><span class="p">,</span><span class="n">fim</span><span class="p">,</span><span class="n">string</span><span class="p">):</span>
+    <span class="n">padrao1</span> <span class="o">=</span> <span class="n">padrao</span><span class="p">(</span><span class="n">inicio</span><span class="p">,</span><span class="n">string</span><span class="p">)</span>
+    <span class="n">padrao2</span> <span class="o">=</span> <span class="n">padrao</span><span class="p">(</span><span class="n">fim</span><span class="p">,</span><span class="n">string</span><span class="p">)</span>
+    
+    <span class="n">padraoif</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="n">padrao1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">string</span><span class="p">)])</span>
+    <span class="k">for</span> <span class="n">p2</span> <span class="ow">in</span> <span class="n">padrao2</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">padrao1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">padrao1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;=</span><span class="n">padrao1</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">padraoif</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">padrao1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">padraoif</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">padraoif</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">padraoif</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">padraoif</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">padrao1</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">padraoif</span></div>
+
+<div class="viewcode-block" id="mes"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.mes">[docs]</a><span class="k">def</span> <span class="nf">mes</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> 
+    
+    <span class="n">dict_mes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Janeiro&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s1">&#39;Fevereiro&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s1">&#39;Março&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s1">&#39;Abril&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> 
+                <span class="s1">&#39;Maio&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s1">&#39;Junho&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+                <span class="s1">&#39;Julho&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+                <span class="s1">&#39;Agosto&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s1">&#39;Setembro&#39;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                <span class="s1">&#39;Outubro&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s1">&#39;Novembro&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+                <span class="s1">&#39;Dezembro&#39;</span><span class="p">:</span> <span class="mi">12</span>
+               <span class="p">}</span>
+    
+    <span class="k">return</span> <span class="n">dict_mes</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></div>
+
+<span class="c1">####################################</span>
+
+<div class="viewcode-block" id="jogadores_inscritos"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.jogadores_inscritos">[docs]</a><span class="k">def</span> <span class="nf">jogadores_inscritos</span><span class="p">(</span><span class="n">jogo_id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retorna todos os jogadores inscritos para a partida.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">req</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.espn.com.br/futebol/escalacoes?jogoId=&quot;</span><span class="o">+</span><span class="n">jogo_id</span><span class="p">)</span>
+    <span class="n">soup</span><span class="o">=</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">=</span><span class="n">soup</span><span class="o">.</span><span class="n">prettify</span><span class="p">()</span>
+    <span class="n">abt</span><span class="o">=</span><span class="n">sem_espaco</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    
+    <span class="n">s</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;&lt;span&#39;</span><span class="p">,</span><span class="s1">&#39;class=&quot;name&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;&lt;a&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;/a&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt</span><span class="p">)</span>
+    
+    <span class="c1"># Buscar em qual índice ocorre a mudança, dos jogadores do time da casa, para os jogadores do time visitante.</span>
+    <span class="n">abt0</span><span class="o">=</span><span class="n">abt</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">s</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> 
+    <span class="n">ind_change</span><span class="o">=</span><span class="n">padrao</span><span class="p">([</span><span class="s1">&#39;class=&quot;name&quot;&gt;</span><span class="se">\n\t\t\t\n\t\t\t</span><span class="s1">&lt;span&#39;</span><span class="p">],</span><span class="n">abt0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="n">player</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)):</span>
+        <span class="n">abt1</span><span class="o">=</span><span class="n">abt</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">5</span><span class="p">:</span><span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">abt1</span>
+        <span class="n">jogador</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">abt1</span><span class="p">:</span>
+            <span class="n">jogador</span> <span class="o">=</span> <span class="n">jogador</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">x</span>
+    
+        <span class="n">jogador</span><span class="o">=</span><span class="n">jogador</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+        <span class="n">stop</span><span class="o">=</span><span class="kc">False</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">stop</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">camisa</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">abt</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">i</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">camisa</span><span class="o">=</span><span class="kc">None</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">8</span> <span class="ow">or</span> <span class="n">camisa</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+    
+        <span class="n">abt1</span><span class="o">=</span><span class="n">abt</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">8</span><span class="p">:</span><span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">v</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;class=&quot;detail&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;/span&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt1</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tempo_substituicao</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">abt1</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tempo_substituicao</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">abt1</span><span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">5</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">tempo_substituicao</span><span class="o">=</span><span class="mi">0</span>
+        
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">ind_change</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="s1">&#39;casa&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="s1">&#39;visitante&#39;</span>
+        
+        <span class="n">player</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">jogador</span><span class="p">,</span> <span class="n">camisa</span><span class="p">,</span> <span class="n">tempo_substituicao</span><span class="p">,</span> <span class="n">time</span><span class="p">])</span>
+    
+    <span class="n">jogadores_casa_0</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">player</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;casa&#39;</span><span class="p">]</span>
+    <span class="n">jogadores_visitante_0</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">player</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;visitante&#39;</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">jogadores_casa_0</span><span class="p">,</span> <span class="n">jogadores_visitante_0</span></div>
+
+<span class="c1"># Funções auxiliares da função: requisicao_gols</span>
+
+<div class="viewcode-block" id="teste_gols"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.teste_gols">[docs]</a><span class="k">def</span> <span class="nf">teste_gols</span><span class="p">(</span><span class="n">jogo_id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retorna se o time da casa e o time visitante, marcaram gols.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">req</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.espn.com.br/futebol/escalacoes?jogoId=&quot;</span><span class="o">+</span><span class="n">jogo_id</span><span class="p">)</span>
+    <span class="n">soup</span><span class="o">=</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">=</span><span class="n">soup</span><span class="o">.</span><span class="n">prettify</span><span class="p">()</span>
+    <span class="n">abt</span><span class="o">=</span><span class="n">sem_espaco</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    
+    <span class="n">te</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;&lt;ul&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;class=&quot;goal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-font-before&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-soccer-ball-before&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-soccerball&quot;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;data-event-type=&quot;goal&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;&lt;li&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;/ul&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt</span><span class="p">)</span>
+    
+    <span class="n">teste_casa</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">teste_visitante</span><span class="o">=</span><span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">te</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+        <span class="n">teste_casa</span><span class="o">=</span><span class="kc">True</span>
+        <span class="n">teste_visitante</span><span class="o">=</span><span class="kc">True</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">te</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">abt</span><span class="p">[</span><span class="n">te</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">][:]</span><span class="o">==</span><span class="s1">&#39;data-home-away=&quot;home&quot;&#39;</span><span class="p">:</span>
+            <span class="n">teste_casa</span><span class="o">=</span><span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">teste_visitante</span><span class="o">=</span><span class="kc">True</span>
+            
+    <span class="k">return</span> <span class="n">teste_casa</span><span class="p">,</span> <span class="n">teste_visitante</span></div>
+
+
+<div class="viewcode-block" id="gols_casa_visitante"><a class="viewcode-back" href="../../../../module/cafu.utils.queries.html#cafu.utils.queries.partida.gols_casa_visitante">[docs]</a><span class="k">def</span> <span class="nf">gols_casa_visitante</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">jogo_id</span><span class="p">):</span> 
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retorna os dados da função requisição_gols, para q={0, 1}. </span>
+<span class="sd">    Se ambos os times marcaram: q=0 representa time da casa, q=1 representa time visitante. </span>
+<span class="sd">    Se apenas um time marcou, q=0 represente este time, q=1 gera erro. Se nenhum time marcou, q=0 e q=1 geram erro.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">req</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://www.espn.com.br/futebol/escalacoes?jogoId=&quot;</span><span class="o">+</span><span class="n">jogo_id</span><span class="p">)</span>
+    <span class="n">soup</span><span class="o">=</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">=</span><span class="n">soup</span><span class="o">.</span><span class="n">prettify</span><span class="p">()</span>
+    <span class="n">abt</span><span class="o">=</span><span class="n">sem_espaco</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+
+    <span class="n">te</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;&lt;ul&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;class=&quot;goal&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-font-before&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-soccer-ball-before&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;icon-soccerball&quot;&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;data-event-type=&quot;goal&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;&lt;li&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;/ul&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt</span><span class="p">)</span>
+        
+    <span class="n">abt_q_1</span><span class="o">=</span><span class="n">abt</span><span class="p">[</span><span class="n">te</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">te</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">te_q</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;&lt;span&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;/span&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt_q_1</span><span class="p">)</span>
+    <span class="n">te1</span><span class="o">=</span><span class="n">padrao_inicio_fim</span><span class="p">([</span><span class="s1">&#39;&lt;li&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],[</span><span class="s1">&#39;&lt;span&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">],</span><span class="n">abt_q_1</span><span class="p">)</span>
+        
+    <span class="n">gols_q</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">te1</span><span class="p">)):</span>
+        <span class="n">jogador_gol</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">abt_q_1</span><span class="p">[</span><span class="n">te1</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">te1</span><span class="p">[</span><span class="n">q</span><span class="p">][</span><span class="mi">1</span><span class="p">]][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">jogador_gol</span> <span class="o">=</span> <span class="n">jogador_gol</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">x</span>
+
+        <span class="n">jogador_gol</span> <span class="o">=</span> <span class="n">jogador_gol</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">gols_q</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;jogador&#39;</span><span class="p">:</span> <span class="n">jogador_gol</span><span class="p">,</span> <span class="s1">&#39;minutos_gols&#39;</span><span class="p">:[]})</span>
+        
+    
+    <span class="n">numeros</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">,</span><span class="s1">&#39;1&#39;</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">,</span><span class="s1">&#39;4&#39;</span><span class="p">,</span><span class="s1">&#39;5&#39;</span><span class="p">,</span><span class="s1">&#39;6&#39;</span><span class="p">,</span><span class="s1">&#39;7&#39;</span><span class="p">,</span><span class="s1">&#39;8&#39;</span><span class="p">,</span><span class="s1">&#39;9&#39;</span><span class="p">,</span><span class="s1">&#39;10&#39;</span><span class="p">)</span>
+    <span class="n">minuto_q</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">te_q</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">abt_q_1</span><span class="p">[</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">])):</span>
+            
+            <span class="n">min_valido</span> <span class="o">=</span> <span class="kc">False</span>
+            
+            <span class="k">if</span> <span class="n">j</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">minuto_q_0</span> <span class="o">=</span> <span class="s1">&#39;(&#39;</span><span class="o">+</span><span class="n">abt_q_1</span><span class="p">[</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">minuto_q_0</span> <span class="o">=</span> <span class="n">abt_q_1</span><span class="p">[</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">te_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                
+            <span class="k">if</span> <span class="n">minuto_q_0</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&#39;&quot;</span><span class="p">:</span>
+                <span class="n">minuto</span> <span class="o">=</span> <span class="n">minuto_q_0</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">minuto</span> <span class="ow">in</span> <span class="n">numeros</span><span class="p">:</span>
+                    <span class="n">min_valido</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="n">minuto</span> <span class="o">=</span> <span class="n">minuto_q_0</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">minuto</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">numeros</span> <span class="ow">and</span> <span class="n">minuto</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">numeros</span><span class="p">:</span>
+                    <span class="n">min_valido</span> <span class="o">=</span> <span class="kc">True</span>
+                    
+            <span class="k">if</span> <span class="n">min_valido</span><span class="p">:</span>
+                <span class="n">gols_q</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;minutos_gols&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">minuto</span><span class="p">))</span>                
+                
+    <span class="k">return</span> <span class="n">gols_q</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
