@@ -110,10 +110,22 @@ class GetOdds(TrafficOddsPartida):
         
         response = {}
         count = 0
+        count_odds_error_click = 0
         for e in tqdm(elements_all_odds):
             odds = e.text
             if odds != '':
-                e.click()
+                try:
+                    e.click()
+                    proceed = True
+                except:
+                    #ocorreram casos em que a odd estava definida, mas o click não foi possível. <count_odds_error_click> conta esses casos.
+                    #Se <count_odds_error_click> > 0 no final do processo, um erro é retornado no log, mas a função continua sendo executada.
+                    proceed = False
+                    count_odds_error_click += 1
+            else:
+                proceed = False
+            
+            if proceed:
                 class_evento = 'market-description.bg-info.text-md.text-light.p5.m0.pl10'
                 class_tipo_aposta = 'selection-market-period-description'
                 
@@ -196,7 +208,11 @@ class GetOdds(TrafficOddsPartida):
         
         end = time.time()
         runtime_str = convert_str_var_time(init, end)
-        logging.info(f"SUCCESS queries.odds.GetOdds.get_odds: Function executed successfully. "
-                     f"<qt_desconsiderar>={qt_desconsiderar}. runtime = {runtime_str}")
+        if count_odds_error_click == 0:
+            logging.info(f"SUCCESS queries.odds.GetOdds.get_odds: Function executed successfully. "
+                         f"<qt_desconsiderar>={qt_desconsiderar}. runtime = {runtime_str}")
+        else:
+            logging.error(f"ERROR queries.odds.GetOdds.get_odds: . <count_odds_error_click> = {count_odds_error_click}. "
+                          f"<qt_desconsiderar>={qt_desconsiderar}. runtime = {runtime_str}")
 
         return response

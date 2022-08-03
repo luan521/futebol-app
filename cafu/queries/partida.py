@@ -737,7 +737,7 @@ class Partida(WebdriverChrome):
                     descricao = descricao + ' ' + palavra
                 descricao = descricao[1:-1]
 
-                response.append({'tempo': tempo, 'descrição' : descricao})
+                response.append({'tempo': tempo, 'descricao' : descricao})
             
             end = time.time()
             runtime_str = convert_str_var_time(init, end)
