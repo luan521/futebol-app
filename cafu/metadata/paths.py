@@ -2,7 +2,7 @@ import os
 from datetime import date
 
 paths = {
-         'initial_path': '/Users/luanhenriquecosta/futebol/Futebol',
+         'initial_path': '/Users/luanhenriquecosta/futebol-v2/futebol-app',
          'logs_cafu': os.getenv('path_logs_cafu'),
          'dir_results': os.getenv('path_dir_results')
         }
